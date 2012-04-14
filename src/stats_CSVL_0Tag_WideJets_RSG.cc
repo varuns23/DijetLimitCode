@@ -49,13 +49,13 @@ double BOUNDARIES[NBINS] = {  890,  944, 1000, 1058, 1118, 1181, 1246, 1313, 138
 double SIGMASS=0;
 const int NPARS=9;
 const int POIINDEX=0; // which parameter is "of interest"
-const char* PAR_NAMES[9]    = { "xs", "lumi", "jes", "jer", "eff", "bkg norm",  "p1",  "p2",  "p3" };
-      double PAR_GUESSES[9] = {  0.1,  4976.,   1.0,   1.0,   0.5,        1.0,  10.0,   5.0,   0.1 };
-const double PAR_MIN[9]     = {  0.0,    0.0,   0.0,   0.0,   0.0,        0.0,   0.0,   0.0,  -5.0 };
-const double PAR_MAX[9]     = { 1.E6,  6000.,   2.0,   2.0,   1.0,       10.0, 100.0, 100.0,   5.0 };
-const double PAR_ERR[9]     = { 0.01,   110.,  0.04,  0.10,  0.01,      1e-01, 1e-01, 1e-02, 1e-02 };
-const int PAR_TYPE[9]       = {    1,      1,     1,     1,     1,          0,     0,     0,     0 }; // 1 = signal, 0 = background
-const int PAR_NUIS[9]       = {    0,      0,     0,     0,     0,          0,     0,     0,     0 }; // 1 = nuisance parameter, 0 = not varied (the POI is not a nuisance parameter)
+const char* PAR_NAMES[9]    = { "xs", "lumi", "jes", "jer", "eff",  "bkg norm",        "p1",        "p2",        "p3" };
+      double PAR_GUESSES[9] = {  0.1,  4976.,   1.0,   1.0,   0.5, 2.28123e-01, 8.50964e+00, 5.42146e+00,  5.21746e-02 };
+const double PAR_MIN[9]     = {  0.0,    0.0,   0.0,   0.0,   0.0,      -9999.,      -9999.,      -9999.,       -9999. };
+const double PAR_MAX[9]     = { 1.E6,  6000.,   2.0,   2.0,   1.0,       9999.,       9999.,       9999.,        9999. };
+const double PAR_ERR[9]     = { 0.01,   110.,  0.04,  0.10,  0.01,      1e-02,        1e-01,       1e-01,        1e-02 };
+const int PAR_TYPE[9]       = {    1,      1,     1,     1,     1,          0,            0,           0,            0 }; // 1 = signal, 0 = background
+const int PAR_NUIS[9]       = {    0,      0,     0,     0,     0,          0,            0,           0,            0 }; // 1 = nuisance parameter, 0 = not varied (the POI is not a nuisance parameter)
 
 // branching ratio for bbbar final state (calculated wrt to the branching ratio for jet-jet final state)
 double BR = 0.5;

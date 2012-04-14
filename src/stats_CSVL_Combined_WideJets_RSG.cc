@@ -43,13 +43,13 @@ vector<string> INPUTFILES;
 double SIGMASS=0;
 const int NPARS=18;
 const int POIINDEX=0; // which parameter is "of interest"
-const char* PAR_NAMES[18]    = { "xs", "lumi", "jes", "jer", "eff 0", "eff 2", "norm 0",  "p1 0",  "p2 0",  "p3 0", "norm 1",  "p1 1",  "p2 1",  "p3 1", "norm 2",  "p1 2",  "p2 2",  "p3 2" };
-      double PAR_GUESSES[18] = {  0.1,  4976.,   1.0,   1.0,     0.5,     0.1,      1.0,    10.0,     5.0,     0.1,      1.0,    10.0,     5.0,     0.1,      0.1,    10.0,    10.0,     1.0 };
-const double PAR_MIN[18]     = {  0.0,    0.0,   0.0,   0.0,     0.0,     0.0,      0.0,     0.0,     0.0,    -5.0,      0.0,     0.0,     0.0,    -5.0,      0.0,  -100.0,     0.0,     0.0 };
-const double PAR_MAX[18]     = { 1.E6,  6000.,   2.0,   2.0,     1.0,     1.0,     10.0,   100.0,   100.0,     5.0,     10.0,   100.0,   100.0,     5.0,     10.0,   100.0,   100.0,   100.0 };
-const double PAR_ERR[18]     = { 0.01,   110.,  0.04,  0.10,    0.05,    0.01,    1e-01,   1e-01,   1e-02,   1e-02,    1e-01,   1e-01,   1e-01,   1e-01,    1e-01,   1e-01,   1e-01,   1e-01 };
-const int PAR_TYPE[18]       = {    1,      1,     1,     1,       1,       1,        0,       0,       0,       0,        0,       0,       0,       0,        0,       0,       0,       0 }; // 1 = signal, 0 = background
-const int PAR_NUIS[18]       = {    0,      0,     0,     0,       0,       0,        0,       0,       0,       0,        0,       0,       0,       0,        0,       0,       0,       0 }; // 1 = nuisance parameter, 0 = not varied (the POI is not a nuisance parameter)
+const char* PAR_NAMES[18]    = { "xs", "lumi", "jes", "jer", "eff 0", "eff 2",    "norm 0",      "p1 0",      "p2 0",       "p3 0",    "norm 1",      "p1 1",      "p2 1",       "p3 1",    "norm 2",      "p1 2",      "p2 2",       "p3 2" };
+      double PAR_GUESSES[18] = {  0.1,  4976.,   1.0,   1.0,     0.5,     0.1, 2.28123e-01, 8.50964e+00, 5.42146e+00,  5.21746e-02, 1.41441e-01, 8.47680e+00, 4.97182e+00, -3.61227e-02, 4.11085e-03, 6.37674e+00, 5.58509e+00,  4.91493e-02 };
+const double PAR_MIN[18]     = {  0.0,    0.0,   0.0,   0.0,     0.0,     0.0,      -9999.,      -9999.,      -9999.,       -9999.,      -9999.,      -9999.,      -9999.,       -9999.,      -9999.,      -9999.,      -9999.,       -9999. };
+const double PAR_MAX[18]     = { 1.E6,  6000.,   2.0,   2.0,     1.0,     1.0,       9999.,       9999.,       9999.,        9999.,       9999.,       9999.,       9999.,        9999.,       9999.,       9999.,       9999.,        9999. };
+const double PAR_ERR[18]     = { 0.01,   110.,  0.04,  0.10,    0.05,    0.01,      1e-02,        1e-01,       1e-01,        1e-02,      1e-02,        1e-01,       1e-01,        1e-02,      1e-03,        1e-01,       1e-01,        1e-02 };
+const int PAR_TYPE[18]       = {    1,      1,     1,     1,       1,       1,          0,            0,           0,            0,          0,            0,           0,            0,          0,            0,           0,            0 }; // 1 = signal, 0 = background
+const int PAR_NUIS[18]       = {    0,      0,     0,     0,       0,       0,          0,            0,           0,            0,          0,            0,           0,            0,          0,            0,           0,            0 }; // 1 = nuisance parameter, 0 = not varied (the POI is not a nuisance parameter)
 
 // histogram binning
 const int NBINS=117;
