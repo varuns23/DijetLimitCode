@@ -72,5 +72,60 @@ TH1D* getData(const std::vector<std::string>& filenames, const char* histname, i
     assert(0);
   }
 
+  for(unsigned i=0; i<nFiles; ++i)
+  {
+    files[i]->Close();
+  }
+  
   return hist;
+}
+
+
+TH1D* getSignalCDF(const char* filename1, const char* histname1, const char* filename2, const char* histname2, const double BR, const double eff_h, const double eff_l, const std::string& postfix)
+{
+  TH1D* h_pdf=new TH1D("h_pdf", "Resonance Shape", 14000, 0, 14000);
+  TH1D* h_cdf=new TH1D(("h_cdf"+postfix).c_str(), "Resonance Shape CDF", 14000, 0, 14000);
+   
+  TFile* histfile1=new TFile(filename1);
+  TFile* histfile2=new TFile(filename2);
+
+  TH1D* hist1=(TH1D*)histfile1->Get(histname1);
+  TH1D* hist2=(TH1D*)histfile2->Get(histname2);
+    
+  hist1->Scale(eff_h*BR);
+  hist2->Scale(eff_l*(1-BR));
+  hist1->Add(hist2);
+  
+  for(int i=1; i<=hist1->GetNbinsX(); i++){
+
+    int bin_min = h_pdf->GetXaxis()->FindBin(hist1->GetXaxis()->GetBinLowEdge(i)+0.5);
+    int bin_max = h_pdf->GetXaxis()->FindBin(hist1->GetXaxis()->GetBinUpEdge(i)-0.5);
+    double bin_content = hist1->GetBinContent(i)/double(bin_max-bin_min+1);
+    for(int b=bin_min; b<=bin_max; b++){
+       h_pdf->SetBinContent(b, bin_content);
+    }
+  }
+
+  h_pdf->Scale(1./h_pdf->Integral());
+  
+  for(int i=1; i<=h_cdf->GetNbinsX(); i++){
+
+    int bin_min = h_pdf->GetXaxis()->FindBin(h_cdf->GetXaxis()->GetBinLowEdge(i)+0.5);
+    int bin_max = h_pdf->GetXaxis()->FindBin(h_cdf->GetXaxis()->GetBinUpEdge(i)-0.5);
+
+    double curr = 0;
+    for(int b=bin_min; b<=bin_max; b++){
+       curr+=h_pdf->GetBinContent(b);
+    }
+
+    double prev=h_cdf->GetBinContent(i-1);
+
+    h_cdf->SetBinContent(i, prev+curr);
+  }
+
+  histfile1->Close();
+  histfile2->Close();
+  delete h_pdf;
+
+  return h_cdf;
 }
