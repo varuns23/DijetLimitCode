@@ -101,6 +101,7 @@ TH1D* getSignalCDF(const char* filename1, const char* histname1, const char* fil
     int bin_min = h_pdf->GetXaxis()->FindBin(hist1->GetXaxis()->GetBinLowEdge(i)+0.5);
     int bin_max = h_pdf->GetXaxis()->FindBin(hist1->GetXaxis()->GetBinUpEdge(i)-0.5);
     double bin_content = hist1->GetBinContent(i)/double(bin_max-bin_min+1);
+    if(bin_content<0.) bin_content=0.; // some extrapolated resonance shapes can have a small negative bin content in some of the bins. this protects against such cases
     for(int b=bin_min; b<=bin_max; b++){
        h_pdf->SetBinContent(b, bin_content);
     }
