@@ -404,9 +404,10 @@ double Fitter::computeLikelihoodWithSystematics(double poiVal, double nllNormali
     nll(a,0,f,pars,0);
     double like=TMath::Exp(-f+nllNormalization);
 
-    if(like>10) {
+    if(like>15) {
+      int nPars=minuit_.GetNumPars();
       std::cout << "sample=" << sample << std::endl;
-      for(int i=0; i<8; i++) {
+      for(int i=0; i<nPars; i++) {
 	std::cout << "pars[" << i << "]=" << pars[i] << std::endl;
       }
       std::cout << "like=" << like << "; f=" << f << "; norm=" << nllNormalization << std::endl;
