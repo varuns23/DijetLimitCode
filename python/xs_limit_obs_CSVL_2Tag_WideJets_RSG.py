@@ -24,50 +24,50 @@ gStyle.SetPadBottomMargin(0.15)
 gROOT.ForceStyle()
 
 
-#BR = [0.1, 0.5, 0.75, 1.]
-BR = [0.5]
+BR = [0.1, 0.5, 0.75, 1.]
+
 masses = array('d')
 xs_limits = {}
 
 ########################################################
 ## Uncomment this part if running the limit code
 
-mass_start = 1000.
-mass_step = 100.
-steps = 30
+#mass_start = 1000.
+#mass_step = 100.
+#steps = 30
 
-for br in range(0,len(BR)):
+#for br in range(0,len(BR)):
 
-  xs_limits_array = array('d')
+  #xs_limits_array = array('d')
  
-  for i in range(0,steps+1):
+  #for i in range(0,steps+1):
 
-    mass = mass_start + float(i)*mass_step
+    #mass = mass_start + float(i)*mass_step
 
-    if(br==0): masses.append(mass)
+    #if(br==0): masses.append(mass)
 
-    cmd = "./stats " + str(mass) + " " + str(BR[br]) + " gg"
-    print "Running: " + cmd
-    proc = subprocess.Popen( cmd, shell=True, stdout = subprocess.PIPE, stderr = subprocess.STDOUT )
-    output = proc.communicate()[0]
-    if proc.returncode != 0:
-      print output
-      sys.exit(1)
-    #print output
-    outputlines =  output.split("\n")
+    #cmd = "./stats " + str(mass) + " " + str(BR[br]) + " gg"
+    #print "Running: " + cmd
+    #proc = subprocess.Popen( cmd, shell=True, stdout = subprocess.PIPE, stderr = subprocess.STDOUT )
+    #output = proc.communicate()[0]
+    #if proc.returncode != 0:
+      #print output
+      #sys.exit(1)
+    ##print output
+    #outputlines =  output.split("\n")
 
-    for line in outputlines:
-      if re.search("observed bound =", line):
-        xs_limits_array.append(float(line.split()[6]))
+    #for line in outputlines:
+      #if re.search("observed bound =", line):
+        #xs_limits_array.append(float(line.split()[6]))
 
-  xs_limits[br] = xs_limits_array
+  #xs_limits[br] = xs_limits_array
 
 
-print "masses:"
-print masses
-for br in range(0,len(BR)):
-  print "xs_limits, BR="+str(BR[br])+":"
-  print xs_limits[br]
+#print "masses:"
+#print masses
+#for br in range(0,len(BR)):
+  #print "xs_limits, BR="+str(BR[br])+":"
+  #print xs_limits[br]
 
 ##
 ########################################################
