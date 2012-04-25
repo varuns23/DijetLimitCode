@@ -24,50 +24,50 @@ gStyle.SetPadBottomMargin(0.15)
 gROOT.ForceStyle()
 
 
-BR = [0.1, 0.5, 0.75, 1.]
-
+#BR = [0.1, 0.5, 0.75, 1.]
+BR = [0.5]
 masses = array('d')
 xs_limits = {}
 
 ########################################################
 ## Uncomment this part if running the limit code
 
-#mass_start = 1000.
-#mass_step = 100.
-#steps = 30
+mass_start = 1000.
+mass_step = 100.
+steps = 30
 
-#for br in range(0,len(BR)):
+for br in range(0,len(BR)):
 
-  #xs_limits_array = array('d')
+  xs_limits_array = array('d')
  
-  #for i in range(0,steps+1):
+  for i in range(0,steps+1):
 
-    #mass = mass_start + float(i)*mass_step
+    mass = mass_start + float(i)*mass_step
 
-    #if(br==0): masses.append(mass)
+    if(br==0): masses.append(mass)
 
-    #cmd = "./stats " + str(mass) + " " + " " + str(BR[br])
-    #print "Running: " + cmd
-    #proc = subprocess.Popen( cmd, shell=True, stdout = subprocess.PIPE, stderr = subprocess.STDOUT )
-    #output = proc.communicate()[0]
-    #if proc.returncode != 0:
-      #print output
-      #sys.exit(1)
-    ##print output
-    #outputlines =  output.split("\n")
+    cmd = "./stats " + str(mass) + " " + str(BR[br]) + " gg"
+    print "Running: " + cmd
+    proc = subprocess.Popen( cmd, shell=True, stdout = subprocess.PIPE, stderr = subprocess.STDOUT )
+    output = proc.communicate()[0]
+    if proc.returncode != 0:
+      print output
+      sys.exit(1)
+    #print output
+    outputlines =  output.split("\n")
 
-    #for line in outputlines:
-      #if re.search("observed bound =", line):
-        #xs_limits_array.append(float(line.split()[6]))
+    for line in outputlines:
+      if re.search("observed bound =", line):
+        xs_limits_array.append(float(line.split()[6]))
 
-  #xs_limits[br] = xs_limits_array
+  xs_limits[br] = xs_limits_array
 
 
-#print "masses:"
-#print masses
-#for br in range(0,len(BR)):
-  #print "xs_limits, BR="+str(BR[br])+":"
-  #print xs_limits[br]
+print "masses:"
+print masses
+for br in range(0,len(BR)):
+  print "xs_limits, BR="+str(BR[br])+":"
+  print xs_limits[br]
 
 ##
 ########################################################
@@ -76,10 +76,10 @@ xs_limits = {}
 ## Comment out this part if running the limit code
 
 masses = array('d', [1000.0, 1100.0, 1200.0, 1300.0, 1400.0, 1500.0, 1600.0, 1700.0, 1800.0, 1900.0, 2000.0, 2100.0, 2200.0, 2300.0, 2400.0, 2500.0, 2600.0, 2700.0, 2800.0, 2900.0, 3000.0, 3100.0, 3200.0, 3300.0, 3400.0, 3500.0, 3600.0, 3700.0, 3800.0, 3900.0, 4000.0])
-xs_limits[0] = array('d', [0.92874199999999996, 0.62878800000000001, 0.40017900000000001, 0.27797500000000003, 0.250915, 0.24896799999999999, 0.210754, 0.148449, 0.10424899999999999, 0.074073399999999998, 0.091264100000000001, 0.094143900000000003, 0.0892347, 0.073208999999999996, 0.055544700000000002, 0.046589499999999999, 0.0432062, 0.0390912, 0.0334116, 0.024611299999999999, 0.018625599999999999, 0.0130264, 0.0074468700000000004, 0.00558685, 0.0051220199999999997, 0.0051221699999999997, 0.0051221699999999997, 2.3708999999999864e-310, 2.3462900000000008e-310, 2.3700400000000076e-310, 2.3575100000000106e-310])
-xs_limits[1] = array('d', [1.4005399999999999, 0.89487499999999998, 0.51598299999999997, 0.44567600000000002, 0.34542499999999998, 0.333735, 0.27648299999999998, 0.19139500000000001, 0.11734600000000001, 0.096251500000000004, 0.111668, 0.116525, 0.10648000000000001, 0.089807600000000001, 0.066659499999999997, 0.058584400000000002, 0.051985200000000002, 0.0458147, 0.039011299999999999, 0.0276858, 0.020483399999999999, 0.0148921, 0.0093107999999999993, 0.0065179399999999998, 0.0055874599999999998, 0.0055876099999999998, 0.0055877899999999996, 0.00558786, 0.0054203599999999999, 2.3700599999999773e-310, 0.0052139300000000003])
-xs_limits[2] = array('d', [1.83256, 1.22027, 0.67835299999999998, 0.52399600000000002, 0.454011, 0.444328, 0.33168300000000001, 0.238122, 0.146121, 0.11768099999999999, 0.13591500000000001, 0.139547, 0.12618599999999999, 0.10399899999999999, 0.075838000000000003, 0.066569299999999998, 0.060065100000000003, 0.051823000000000001, 0.042484399999999999, 0.029779300000000002, 0.022344800000000001, 0.0148971, 0.0093107999999999993, 0.00745029, 0.0065188599999999996, 0.0065192000000000002, 0.0060535199999999997, 0.0060535600000000004, 0.0060025, 2.3189399999999759e-310, 0.00539157])
-xs_limits[3] = array('d', [1.8963399999999999, 1.01139, 0.62498200000000004, 0.74349900000000002, 0.70381499999999997, 0.652443, 0.46548200000000001, 0.27313999999999999, 0.20443900000000001, 0.170154, 0.177175, 0.17220099999999999, 0.14990200000000001, 0.118579, 0.092372099999999999, 0.080055699999999994, 0.070419499999999996, 0.059425699999999998, 0.047353899999999997, 0.033526599999999997, 0.022278300000000001, 0.0148862, 0.0102419, 0.0074489100000000004, 0.0069845100000000002, 0.0069849100000000004, 0.0065191700000000003, 0.0065208799999999997, 0.00636149, 2.3701899999999775e-310, 0.0053248000000000002])
+xs_limits[0] = array('d', [1.90079, 1.66124, 0.870923, 0.46322000000000002, 0.40930100000000003, 0.41509400000000002, 0.40252500000000002, 0.49178500000000003, 0.436311, 0.37594499999999997, 0.30646099999999998, 0.25088899999999997, 0.20782100000000001, 0.17171, 0.16664999999999999, 0.149483, 0.11845700000000001, 0.092056299999999994, 0.066971100000000006, 0.048340800000000003, 0.037201600000000001, 0.029733800000000001, 0.026007300000000001, 0.0279346, 0.027934899999999999, 0.0271874, 0.024698000000000001, 0.022340599999999999, 0.020480499999999999, 0.018619400000000001, 0.0167542])
+xs_limits[1] = array('d', [0.48680699999999999, 0.46468399999999999, 0.28148099999999998, 0.17741499999999999, 0.133739, 0.1181, 0.13380500000000001, 0.15837200000000001, 0.15114, 0.136603, 0.118712, 0.101815, 0.086243899999999998, 0.076554700000000003, 0.075268100000000004, 0.071285200000000007, 0.058854400000000001, 0.046178400000000001, 0.035378300000000001, 0.026064, 0.020473700000000001, 0.016751599999999998, 0.016759799999999998, 0.0167577, 0.0186255, 0.018454999999999999, 0.0171135, 0.014896899999999999, 0.014897199999999999, 0.014899300000000001, 0.0139664])
+xs_limits[2] = array('d', [0.34312300000000001, 0.31707200000000002, 0.193381, 0.118767, 0.088423199999999993, 0.089390600000000001, 0.0891536, 0.113257, 0.10891199999999999, 0.099159499999999998, 0.084487800000000002, 0.072088700000000006, 0.063401100000000002, 0.056295699999999997, 0.056340899999999999, 0.0539462, 0.043747399999999999, 0.033660200000000001, 0.027938500000000002, 0.022349899999999999, 0.0167619, 0.0130315, 0.0130309, 0.0139679, 0.0149, 0.0146058, 0.0142685, 0.013969199999999999, 0.0130367, 0.0130352, 0.0130359])
+xs_limits[3] = array('d', [0.253778, 0.24401800000000001, 0.14880199999999999, 0.0888602, 0.066752000000000006, 0.067050200000000004, 0.070691699999999996, 0.088383799999999998, 0.083415600000000006, 0.076095499999999996, 0.066875699999999996, 0.0560733, 0.049859599999999997, 0.044959199999999998, 0.0453905, 0.0427921, 0.035847999999999998, 0.028295799999999999, 0.0223474, 0.0176936, 0.0130343, 0.011171, 0.011172700000000001, 0.011172400000000001, 0.012106, 0.0126442, 0.012355400000000001, 0.012105899999999999, 0.0111728, 0.011172700000000001, 0.0111722])
 
 ##
 ########################################################
@@ -93,10 +93,10 @@ graphs = {}
 for br in range(0,len(BR)):
   graphs[br] = TGraph(len(masses),masses,xs_limits[br])
   graphs[br].SetMarkerStyle(24+br)
-  graphs[br].SetMarkerColor(kRed)
+  graphs[br].SetMarkerColor(kGreen+2)
   graphs[br].SetLineWidth(2)
   graphs[br].SetLineStyle(1+br)
-  graphs[br].SetLineColor(kRed)
+  graphs[br].SetLineColor(kGreen+2)
   if br==0:
     graphs[br].GetXaxis().SetTitle("Resonance Mass [GeV]")
     graphs[br].GetYaxis().SetTitle("#sigma#timesBR(X#rightarrowjj)#timesA [pb]")
@@ -105,12 +105,12 @@ for br in range(0,len(BR)):
 graph_zprime = TGraph(len(m_x),m_x,zprime)
 graph_zprime.SetLineWidth(2)
 graph_zprime.SetLineStyle(4)
-graph_zprime.SetLineColor(38)
+graph_zprime.SetLineColor(30)
 
 graph_rsg = TGraph(len(m_x),m_x,rsg)
 graph_rsg.SetLineWidth(2)
 graph_rsg.SetLineStyle(8)
-graph_rsg.SetLineColor(32)
+graph_rsg.SetLineColor(46)
 
 c = TCanvas("c", "",800,800)
 c.cd()
@@ -123,33 +123,33 @@ for br in range(0,len(BR)):
 
 #graph_rsg.Draw("L")
 
-legend = TLegend(.50,.55,.90,.75)
+legend = TLegend(.45,.60,.85,.80)
 legend.SetBorderSize(0)
 legend.SetFillColor(0)
 legend.SetFillStyle(0)
 legend.SetTextFont(42)
 legend.SetTextSize(0.03)
-#legend.SetHeader("Obs. 95% CL Upper Limits (stat. only)")
-legend.SetHeader("Obs. 95% CL Upper Limits")
+legend.SetHeader("Obs. 95% CL Upper Limits (stat. only)")
+#legend.SetHeader("Obs. 95% CL Upper Limits")
 for br in range(0,len(BR)):
   legend.AddEntry(graphs[br], "f_{b#bar{b}} = " + str(BR[br]),"lp")
 legend.Draw()
 
-legend2 = TLegend(.50,.75,.90,.8)
+legend2 = TLegend(.45,.80,.85,.85)
 legend2.SetBorderSize(0)
 legend2.SetFillColor(0)
 legend2.SetFillStyle(0)
 legend2.SetTextFont(42)
 legend2.SetTextSize(0.03)
 legend2.AddEntry(graph_rsg,"RS Graviton (f_{b#bar{b}} #approx 0.1)","l")
-legend2.Draw()
+#legend2.Draw()
 
 l1 = TLatex()
 l1.SetTextAlign(12)
 l1.SetTextFont(42)
 l1.SetNDC()
 l1.SetTextSize(0.035)
-l1.DrawLatex(0.7,0.88, "f_{b#bar{b}} = #frac{BR(X#rightarrowb#bar{b})}{BR(X#rightarrowjj)}")
+l1.DrawLatex(0.70,0.50, "f_{b#bar{b}} = #frac{BR(X#rightarrowb#bar{b})}{BR(X#rightarrowjj)}")
 l1.SetTextSize(0.04)
 l1.DrawLatex(0.19,0.88, "RS-graviton-like")
 l1.SetTextSize(0.04)
@@ -160,6 +160,6 @@ l1.DrawLatex(0.19,0.25, "|#eta| < 2.5, |#Delta#eta| < 1.3")
 l1.DrawLatex(0.19,0.20, "Wide Jets, CSVL 2-tag")
 
 c.SetLogy()
-#c.SaveAs('CSVL_2Tag_limit_obs_WideJets_RSG.eps')
-c.SaveAs('CSVL_2Tag_limit_obs_syst_WideJets_RSG.eps')
+c.SaveAs('CSVL_2Tag_limit_obs_WideJets_RSG.eps')
+#c.SaveAs('CSVL_2Tag_limit_obs_sys_WideJets_RSG.eps')
 
