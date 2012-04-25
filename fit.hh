@@ -22,6 +22,9 @@ public:
   // setters
   void setData(TH1D* hist) { data_=hist; }
   void setFunctionIntegral(integral_ptr_t fcnintegral) { functionIntegral_=fcnintegral; }
+
+  // getters
+  bool callLimitReached() { return callLimitReached_; }
  
   // parameter manipulation
   int defineParameter(int parno, const char* name, double value, double error, double lo, double hi, bool isNuisance);
@@ -83,6 +86,7 @@ private:
   
   int nSamples_;
   int nCalls_;
+  bool callLimitReached_;
 
   void evaluateForPosterior(double lo, double mid, double hi, double nllNormalization, std::map<double, double>& fcnEval_);
   double computeLikelihoodWithSystematics(double poiVal, double nllNormalization);

@@ -26,6 +26,7 @@ Fitter::Fitter()
   if(!rand_) rand_=new TRandom3(31415);
   parameters_=0;
   poiIndex_=-1;
+  callLimitReached_=false;
 }
 
 Fitter::Fitter(TH1D* data, integral_ptr_t functionIntegral)
@@ -38,6 +39,7 @@ Fitter::Fitter(TH1D* data, integral_ptr_t functionIntegral)
   if(!rand_) rand_=new TRandom3(31415);
   parameters_=0;
   poiIndex_=-1;
+  callLimitReached_=false;
 }
 
 Fitter::~Fitter()
@@ -316,8 +318,10 @@ TH1D* Fitter::makePseudoData(const char* name, double* parameters)
 
 void Fitter::evaluateForPosterior(double lo, double mid, double hi, double nllNormalization, std::map<double, double>& fcnEval_)
 {
-  assert((nCalls_++)<2000);
-
+  if((nCalls_++)>1000) {
+    callLimitReached_=true;
+    return;
+  }
   // get the low value
   std::map<double, double>::iterator findit;
   findit = fcnEval_.find(lo);
