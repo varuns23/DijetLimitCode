@@ -73,7 +73,7 @@ int USE_DIAG_BASIS = 1;
 //                                     "p0' 0"     "p1' 0"     "p2' 0"      "p3' 0"     "p0' 1"     "p1' 1"     "p2' 1"      "p3' 1"    "p0' 2"     "p1' 2"     "p2' 2"      "p3' 2"
 const double PAR_DIAG[12]     = {       8.598,      4.961,     0.8565,       -1.619,     8.554,      4.514,      1.343,       -1.121,    6.466,      5.195,      1.754,     -0.04229 };
 const double PAR_ERR_DIAG[12] = {   0.0459168, 0.00901154, 0.00255023,  0.000209299, 0.0747718,  0.0147702, 0.00355092,  0.000258098, 0.233569,  0.0472555, 0.00979109,  2.79489e-05 };
-                             
+
 // branching ratio for bbbar final state (calculated wrt to the branching ratio for jet-jet final state)
 double BR = 1.;
 
@@ -141,7 +141,7 @@ double INTEGRAL_0Tag(double *fx0, double *fxf, double *par)
     p2   = T(2,0)*par[6] + T(2,1)*par[7] + T(2,2)*par[8] + T(2,3)*par[9];
     p3   = T(3,0)*par[6] + T(3,1)*par[7] + T(3,2)*par[8] + T(3,3)*par[9];
   }
-  
+
   // uses Simpson's 3/8th rule to compute the background integral over a short interval
   // also use a power series expansion to determine the intermediate intervals since the pow() call is expensive
 
@@ -156,7 +156,7 @@ double INTEGRAL_0Tag(double *fx0, double *fxf, double *par)
 
   double bkg=(xf-x0)*norm*(a+0.375*(b+c+d)+0.375*(2*b+4*c+8*d)+0.125*(3*b+9*c+27*d));
   if(bkg<0.) bkg=0.0000001;
-  
+
   if(xs==0.0) return bkg;
 
   double xprimef=jes*(jer*(xf-SIGMASS)+SIGMASS);
@@ -206,7 +206,7 @@ double INTEGRAL_1Tag(double *fx0, double *fxf, double *par)
     p2   = T(2,0)*par[10] + T(2,1)*par[11] + T(2,2)*par[12] + T(2,3)*par[13];
     p3   = T(3,0)*par[10] + T(3,1)*par[11] + T(3,2)*par[12] + T(3,3)*par[13];
   }
-  
+
   // uses Simpson's 3/8th rule to compute the background integral over a short interval
   // also use a power series expansion to determine the intermediate intervals since the pow() call is expensive
 
@@ -221,7 +221,7 @@ double INTEGRAL_1Tag(double *fx0, double *fxf, double *par)
 
   double bkg=(xf-x0)*norm*(a+0.375*(b+c+d)+0.375*(2*b+4*c+8*d)+0.125*(3*b+9*c+27*d));
   if(bkg<0.) bkg=0.0000001;
-    
+
   if(xs==0.0) return bkg;
 
   double xprimef=jes*(jer*(xf-SIGMASS)+SIGMASS);
@@ -271,7 +271,7 @@ double INTEGRAL_2Tag(double *fx0, double *fxf, double *par)
     p2   = T(2,0)*par[14] + T(2,1)*par[15] + T(2,2)*par[16] + T(2,3)*par[17];
     p3   = T(3,0)*par[14] + T(3,1)*par[15] + T(3,2)*par[16] + T(3,3)*par[17];
   }
-  
+
   // uses Simpson's 3/8th rule to compute the background integral over a short interval
   // also use a power series expansion to determine the intermediate intervals since the pow() call is expensive
 
@@ -286,7 +286,7 @@ double INTEGRAL_2Tag(double *fx0, double *fxf, double *par)
 
   double bkg=(xf-x0)*norm*(a+0.375*(b+c+d)+0.375*(2*b+4*c+8*d)+0.125*(3*b+9*c+27*d));
   if(bkg<0.) bkg=0.0000001;
-  
+
   if(xs==0.0) return bkg;
 
   double xprimef=jes*(jer*(xf-SIGMASS)+SIGMASS);
@@ -340,22 +340,22 @@ int main(int argc, char* argv[])
     PAR_GUESSES[14] = PAR_DIAG[8]; PAR_GUESSES[15] = PAR_DIAG[9]; PAR_GUESSES[16] = PAR_DIAG[10]; PAR_GUESSES[17] = PAR_DIAG[11];
     PAR_ERR[14] = PAR_ERR_DIAG[8]; PAR_ERR[15] = PAR_ERR_DIAG[9]; PAR_ERR[16] = PAR_ERR_DIAG[10]; PAR_ERR[17] = PAR_ERR_DIAG[11];
   }
-  
+
   // set 0-tag efficiency and efficiency errors
   PAR_GUESSES[4] = g_eff0_h->Eval(SIGMASS)*BR + g_eff0_l->Eval(SIGMASS)*(1-BR);
   PAR_ERR[4] = sqrt( pow(g_eff0_err_h->Eval(SIGMASS)*BR,2) + pow(g_eff0_err_l->Eval(SIGMASS)*(1-BR),2) );
   // set 2-tag efficiency and efficiency errors
   PAR_GUESSES[5] = g_eff2_h->Eval(SIGMASS)*BR + g_eff2_l->Eval(SIGMASS)*(1-BR);
   PAR_ERR[5] = sqrt( pow(g_eff2_err_h->Eval(SIGMASS)*BR,2) + pow(g_eff2_err_l->Eval(SIGMASS)*(1-BR),2) );
-  
+
   // input file names
-  INPUTFILES.push_back("Data_and_ResonanceShapes/Final__histograms_CSVL_0Tag_WideJets.root");
-  INPUTFILES.push_back("Data_and_ResonanceShapes/Final__histograms_CSVL_1Tag_WideJets.root");
-  INPUTFILES.push_back("Data_and_ResonanceShapes/Final__histograms_CSVL_2Tag_WideJets.root");
-  
+  INPUTFILES.push_back("/uscms/home/ferencek/MyAnalysis/MyAnalyzer/test/LimitCode/Data_and_ResonanceShapes/Final__histograms_CSVL_0Tag_WideJets.root");
+  INPUTFILES.push_back("/uscms/home/ferencek/MyAnalysis/MyAnalyzer/test/LimitCode/Data_and_ResonanceShapes/Final__histograms_CSVL_1Tag_WideJets.root");
+  INPUTFILES.push_back("/uscms/home/ferencek/MyAnalysis/MyAnalyzer/test/LimitCode/Data_and_ResonanceShapes/Final__histograms_CSVL_2Tag_WideJets.root");
+
   // setup the signal histogram
-  string filename1 = "Data_and_ResonanceShapes/Resonance_Shapes_WideJets_bb.root";
-  string filename2 = "Data_and_ResonanceShapes/Resonance_Shapes_WideJets_" + LFRS + ".root";
+  string filename1 = "/uscms/home/ferencek/MyAnalysis/MyAnalyzer/test/LimitCode/Data_and_ResonanceShapes/Resonance_Shapes_WideJets_bb.root";
+  string filename2 = "/uscms/home/ferencek/MyAnalysis/MyAnalyzer/test/LimitCode/Data_and_ResonanceShapes/Resonance_Shapes_WideJets_" + LFRS + ".root";
 
   ostringstream histname1, histname2;
   histname1 << "h_bb_" << masspoint;
@@ -365,12 +365,12 @@ int main(int argc, char* argv[])
   HISTCDF_0Tag=getSignalCDF(filename1.c_str(), histname1.str().c_str(), filename2.c_str(), histname2.str().c_str(), BR, g_eff0_h->Eval(SIGMASS), g_eff0_l->Eval(SIGMASS), "_0Tag");
   HISTCDF_1Tag=getSignalCDF(filename1.c_str(), histname1.str().c_str(), filename2.c_str(), histname2.str().c_str(), BR, (1-g_eff0_h->Eval(SIGMASS)-g_eff2_h->Eval(SIGMASS)), (1-g_eff0_l->Eval(SIGMASS)-g_eff2_l->Eval(SIGMASS)), "_1Tag");
   HISTCDF_2Tag=getSignalCDF(filename1.c_str(), histname1.str().c_str(), filename1.c_str(), histname1.str().c_str(), BR, g_eff2_h->Eval(SIGMASS), g_eff2_l->Eval(SIGMASS), "_2Tag");
-  
+
   assert(HISTCDF_0Tag && HISTCDF_1Tag && HISTCDF_2Tag && SIGMASS>0);
-  
+
   // get the data
   TH1D* data=getData(INPUTFILES, "DATA__cutHisto_allPreviousCuts________DijetMass", NBINS-1, BOUNDARIES);
-  
+
   // create the output file
   ostringstream outputfile;
   outputfile << OUTPUTFILE.substr(0,OUTPUTFILE.find(".root")) << "_" << masspoint << "_" << BR << ".root";
@@ -434,7 +434,7 @@ int main(int argc, char* argv[])
   pair<double, double> bounds_data=evaluateInterval(post_data, ALPHA, LEFTSIDETAIL);
   observedLowerBound=bounds_data.first;
   observedUpperBound=bounds_data.second;
-  
+
   // perform the PEs (0 = data)
   for(int pe=1; pe<=NPES; ++pe) {
 
@@ -468,6 +468,12 @@ int main(int argc, char* argv[])
     }
 
     TGraph* post=fit.calculatePosterior(NSAMPLES);
+    if(fit.callLimitReached()) {
+      cout << "************************************************************" << endl
+           << "*** Call limit reached. Skipping this pseudo-experiment. ***" << endl
+           << "************************************************************" << endl;
+      continue;
+    }
     post->Write((string("post")+pestr.str()).c_str());
 
     // put the ranges back in place
@@ -479,8 +485,11 @@ int main(int argc, char* argv[])
 
     // evaluate the limit
     pair<double, double> bounds=evaluateInterval(post, ALPHA, LEFTSIDETAIL);
-    expectedLowerBounds.push_back(bounds.first);
-    expectedUpperBounds.push_back(bounds.second);
+    if(bounds.first==0. && bounds.second>0.)
+    {
+      expectedLowerBounds.push_back(bounds.first);
+      expectedUpperBounds.push_back(bounds.second);
+    }
   }
 
   ////////////////////////////////////////////////////////////////////////////////

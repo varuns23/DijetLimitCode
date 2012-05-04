@@ -130,7 +130,7 @@ double INTEGRAL(double *x0, double *xf, double *par)
     p2   = T(2,0)*par[5] + T(2,1)*par[6] + T(2,2)*par[7] + T(2,3)*par[8];
     p3   = T(3,0)*par[5] + T(3,1)*par[6] + T(3,2)*par[7] + T(3,3)*par[8];
   }
-  
+
   // uses Simpson's 3/8th rule to compute the background integral over a short interval
   // also use a power series expansion to determine the intermediate intervals since the pow() call is expensive
 
@@ -147,7 +147,7 @@ double INTEGRAL(double *x0, double *xf, double *par)
   if(bkg<0.) bkg=0.0000001;
 
   if(xs==0.0) return bkg;
-     
+
   double xprimef=jes*(jer*(xf[0]-SIGMASS)+SIGMASS);
   double xprime0=jes*(jer*(x0[0]-SIGMASS)+SIGMASS);
   int bin1=HISTCDF->GetXaxis()->FindBin(xprimef);
@@ -183,29 +183,29 @@ int main(int argc, char* argv[])
     PAR_GUESSES[5] = PAR_DIAG[0]; PAR_GUESSES[6] = PAR_DIAG[1]; PAR_GUESSES[7] = PAR_DIAG[2]; PAR_GUESSES[8] = PAR_DIAG[3];
     PAR_ERR[5] = PAR_ERR_DIAG[0]; PAR_ERR[6] = PAR_ERR_DIAG[1]; PAR_ERR[7] = PAR_ERR_DIAG[2]; PAR_ERR[8] = PAR_ERR_DIAG[3];
   }
-  
+
   // set 1-tag efficiency and efficiency errors
   PAR_GUESSES[4] = 1 - (g_eff0_h->Eval(SIGMASS)*BR + g_eff0_l->Eval(SIGMASS)*(1-BR)) - (g_eff2_h->Eval(SIGMASS)*BR + g_eff2_l->Eval(SIGMASS)*(1-BR));
   PAR_ERR[4] = sqrt( pow(g_eff0_err_h->Eval(SIGMASS)*BR,2) + pow(g_eff0_err_l->Eval(SIGMASS)*(1-BR),2) + pow(g_eff2_err_h->Eval(SIGMASS)*BR,2) + pow(g_eff2_err_l->Eval(SIGMASS)*(1-BR),2) );
-  
+
   // input file names
   INPUTFILES.push_back("Data_and_ResonanceShapes/Final__histograms_CSVL_1Tag_WideJets.root");
-  
+
   // setup the signal histogram
   string filename1 = "Data_and_ResonanceShapes/Resonance_Shapes_WideJets_bb.root";
   string filename2 = "Data_and_ResonanceShapes/Resonance_Shapes_WideJets_" + LFRS + ".root";
-  
+
   ostringstream histname1, histname2;
   histname1 << "h_bb_" << masspoint;
   histname2 << "h_" << LFRS << "_" << masspoint;
 
   HISTCDF=getSignalCDF(filename1.c_str(), histname1.str().c_str(), filename2.c_str(), histname2.str().c_str(), BR, (1-g_eff0_h->Eval(SIGMASS)-g_eff2_h->Eval(SIGMASS)), (1-g_eff0_l->Eval(SIGMASS)-g_eff2_l->Eval(SIGMASS)));
-  
+
   assert(HISTCDF && SIGMASS>0);
-  
+
   // get the data
   TH1D* data=getData(INPUTFILES, "DATA__cutHisto_allPreviousCuts________DijetMass", NBINS-1, BOUNDARIES);
-  
+
   // create the output file
   ostringstream outputfile;
   outputfile << OUTPUTFILE.substr(0,OUTPUTFILE.find(".root")) << "_" << masspoint << "_" << BR << ".root";
@@ -269,7 +269,7 @@ int main(int argc, char* argv[])
   pair<double, double> bounds_data=evaluateInterval(post_data, ALPHA, LEFTSIDETAIL);
   observedLowerBound=bounds_data.first;
   observedUpperBound=bounds_data.second;
-  
+
   // perform the PEs (0 = data)
   for(int pe=1; pe<=NPES; ++pe) {
 
@@ -303,6 +303,12 @@ int main(int argc, char* argv[])
     }
 
     TGraph* post=fit.calculatePosterior(NSAMPLES);
+    if(fit.callLimitReached()) {
+      cout << "************************************************************" << endl
+           << "*** Call limit reached. Skipping this pseudo-experiment. ***" << endl
+           << "************************************************************" << endl;
+      continue;
+    }
     post->Write((string("post")+pestr.str()).c_str());
 
     // put the ranges back in place
@@ -314,8 +320,11 @@ int main(int argc, char* argv[])
 
     // evaluate the limit
     pair<double, double> bounds=evaluateInterval(post, ALPHA, LEFTSIDETAIL);
-    expectedLowerBounds.push_back(bounds.first);
-    expectedUpperBounds.push_back(bounds.second);
+    if(bounds.first==0. && bounds.second>0.)
+    {
+      expectedLowerBounds.push_back(bounds.first);
+      expectedUpperBounds.push_back(bounds.second);
+    }
   }
 
   ////////////////////////////////////////////////////////////////////////////////
