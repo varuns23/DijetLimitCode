@@ -74,7 +74,7 @@ TH1D* Fitter::calcPull(const char* name)
 {
   TH1D* hPull=dynamic_cast<TH1D*>(data_->Clone(name));
   hPull->SetTitle("Pull Distribution");
-  
+
   hPull->SetBinContent(0, 0.);
   hPull->SetBinContent(hPull->GetNbinsX()+1, 0.);
   hPull->SetBinError(0, 0.);
@@ -99,7 +99,7 @@ TH1D* Fitter::calcDiff(const char* name)
 {
   TH1D* hDiff=dynamic_cast<TH1D*>(data_->Clone(name));
   hDiff->SetTitle("Difference Distribution");
-  
+
   hDiff->SetBinContent(0, 0.);
   hDiff->SetBinContent(hDiff->GetNbinsX()+1, 0.);
   hDiff->SetBinError(0, 0.);
@@ -318,7 +318,7 @@ TH1D* Fitter::makePseudoData(const char* name, double* parameters)
 
 void Fitter::evaluateForPosterior(double lo, double mid, double hi, double nllNormalization, std::map<double, double>& fcnEval_)
 {
-  if((nCalls_++)>1000) {
+  if((nCalls_++)>150) {
     callLimitReached_=true;
     return;
   }
@@ -342,7 +342,7 @@ void Fitter::evaluateForPosterior(double lo, double mid, double hi, double nllNo
   } else {
     midVal=fcnEval_[mid];
   }
-  
+
   // get the high value
   findit = fcnEval_.find(hi);
   double hiVal;
@@ -352,7 +352,7 @@ void Fitter::evaluateForPosterior(double lo, double mid, double hi, double nllNo
   } else {
     hiVal=fcnEval_[hi];
   }
-  
+
   //  std::cout << "lo=" << lo << "; mid=" << mid << "; hi=" << hi << "; loval=" << loVal << "; midval=" << midVal << "; hival=" << hiVal << std::endl;
   double maximumVal = -999.;
   for(std::map<double, double>::const_iterator it=fcnEval_.begin(); it!=fcnEval_.end(); ++it)
@@ -404,19 +404,19 @@ double Fitter::computeLikelihoodWithSystematics(double poiVal, double nllNormali
     nll(a,0,f,pars,0);
     double like=TMath::Exp(-f+nllNormalization);
 
-    if(like>15) {
-      int nPars=minuit_.GetNumPars();
-      std::cout << "sample=" << sample << std::endl;
-      for(int i=0; i<nPars; i++) {
-	std::cout << "pars[" << i << "]=" << pars[i] << std::endl;
-      }
-      std::cout << "like=" << like << "; f=" << f << "; norm=" << nllNormalization << std::endl;
-      assert(0);
-    }
+    //if(like>10) {
+    //  int nPars=minuit_.GetNumPars();
+    //  std::cout << "sample=" << sample << std::endl;
+    //  for(int i=0; i<nPars; i++) {
+    //    std::cout << "pars[" << i << "]=" << pars[i] << std::endl;
+    //  }
+    //  std::cout << "like=" << like << "; f=" << f << "; norm=" << nllNormalization << std::endl;
+    //  assert(0);
+    //}
 
     total+=like;
   }
- 
+
   // remove lognormals
   for(std::map<int, RandomLognormal*>::const_iterator it=lognorms.begin(); it!=lognorms.end(); ++it) delete it->second;
 
@@ -593,7 +593,7 @@ std::pair<int, int> Fitter::calculateCLs_(double poiVal, std::vector<double>& CL
   // calculate the CLs
   int nNum=0, nDen=0;
   for(unsigned int i=1; i<CLb.size(); i++) {
-    
+
     bool numPass=(CLsb[i]>=CLsb[0]);
     bool denPass=(CLb[i]>CLb[0]);
 
