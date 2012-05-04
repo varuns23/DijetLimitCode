@@ -24,7 +24,7 @@ std::pair<double, double> evaluateInterval(TGraph* posterior, double alpha, doub
     double nextx, nexty;
     posterior->GetPoint(i, firstx, firsty);
     posterior->GetPoint(i+1, nextx, nexty);
-    
+
     double intervalIntegral=(nextx-firstx)*0.5*(firsty+nexty);
     normalization+=intervalIntegral;
   }
@@ -36,7 +36,7 @@ std::pair<double, double> evaluateInterval(TGraph* posterior, double alpha, doub
     double nextx, nexty;
     posterior->GetPoint(i, firstx, firsty);
     posterior->GetPoint(i+1, nextx, nexty);
-    
+
     double intervalIntegral=(nextx-firstx)*0.5*(firsty+nexty)/normalization;
     double slope = (firsty-nexty) / (firstx-nextx);
 
@@ -61,7 +61,7 @@ std::pair<double, double> evaluateInterval(TGraph* posterior, double alpha, doub
   }
 
   std::pair<double, double> p(lower, upper);
-   return p;
+  return p;
 }
 
 void getQuantiles(std::vector<double>& limits, double &median_, std::pair<double, double>& onesigma_, std::pair<double, double>& twosigma_) {
@@ -88,7 +88,7 @@ void getQuantiles(std::vector<double>& limits, double &median_, std::pair<double
   onesigma_.second=quantiles[2];
   twosigma_.first=quantiles[0];
   twosigma_.second=quantiles[3];
-    
+
   return;
 }
 
