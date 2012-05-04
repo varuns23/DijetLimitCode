@@ -303,13 +303,13 @@ int main(int argc, char* argv[])
     }
 
     TGraph* post=fit.calculatePosterior(NSAMPLES);
+    post->Write((string("post")+pestr.str()).c_str());
     if(fit.callLimitReached()) {
       cout << "************************************************************" << endl
            << "*** Call limit reached. Skipping this pseudo-experiment. ***" << endl
            << "************************************************************" << endl;
       continue;
     }
-    post->Write((string("post")+pestr.str()).c_str());
 
     // put the ranges back in place
     for(int i=0; i<NPARS; i++) {
