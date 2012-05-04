@@ -57,6 +57,11 @@ BR = 0.5
     #print output
     #sys.exit(1)
   ##print output
+
+  #log_file = open("stats_" + str(mass) + "_" + str(BR) + ".log",'w')
+  #log_file.write(output)
+  #log_file.close()
+
   #outputlines = output.split("\n")
 
   #for line in outputlines:
@@ -76,7 +81,7 @@ BR = 0.5
   #xs_exp_limits_1sigma.append( xs_exp_limits_1sigma_up[len(masses)-i-1] )
   #xs_exp_limits_2sigma.append( xs_exp_limits_2sigma_up[len(masses)-i-1] )
 
-  
+
 #print "masses:"
 #print masses
 #print "xs_obs_limits, BR=" + str(BR) + ":"
@@ -163,10 +168,14 @@ l1.DrawLatex(0.19,0.43, "CMS Preliminary")
 l1.DrawLatex(0.19,0.35, "#intLdt = 5 fb^{-1}")
 l1.DrawLatex(0.20,0.30, "#sqrt{s} = 7 TeV")
 l1.DrawLatex(0.19,0.25, "|#eta| < 2.5, |#Delta#eta| < 1.3")
-l1.DrawLatex(0.19,0.20, "Wide Jets, CSVL Combined")
+l1.DrawLatex(0.19,0.20, "Wide Jets")
+l1.SetTextSize(0.035)
+l1.DrawLatex(0.70,0.50, "f_{b#bar{b}} = #frac{BR(X#rightarrowb#bar{b})}{BR(X#rightarrowjj)}")
+l1.SetTextSize(0.05)
+l1.DrawLatex(0.52,0.20, "0, 1 and 2 b-tags")
 
 gPad.RedrawAxis();
 
 c.SetLogy()
-c.SaveAs('CSVL_Combined_limit_obsexp_WideJets_RSG.eps')
+c.SaveAs('CSVL_Combined_limit_obsexp_WideJets_RSG.png')
 

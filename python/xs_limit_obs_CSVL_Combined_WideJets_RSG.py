@@ -39,7 +39,7 @@ xs_limits = {}
 #for br in range(0,len(BR)):
 
   #xs_limits_array = array('d')
- 
+
   #for i in range(0,steps+1):
 
     #mass = mass_start + float(i)*mass_step
@@ -95,7 +95,7 @@ xs_limits[3] = array('d', [0.25316499999999997, 0.237844, 0.16478300000000001, 0
 m_x = array('d', [500., 600.,  700., 800., 900., 1000., 1100., 1200., 1300., 1400., 1500., 1600., 1700., 1800., 1900., 2000., 2100., 2200., 2300., 2400., 2500., 2600., 2700., 2800., 2900., 3000., 3100., 3200., 3300., 3400., 3500., 3600., 3700., 3800., 3900., 4000., 4100., 4200., 4300., 4400., 4500.])
 zprime = array('d', [0.2555E+02, 0.1211E+02, 0.6246E+01, 0.3427E+01, 0.1969E+01, 0.1172E+01, 0.7171E+00, 0.4486E+00, 0.2857E+00, 0.1845E+00, 0.1206E+00, 0.7961E-01, 0.5295E-01, 0.3545E-01, 0.2386E-01, 0.1611E-01, 0.1092E-01, 0.7413E-02, 0.5039E-02, 0.3426E-02, 0.2329E-02, 0.1580E-02, 0.1070E-02, 0.7231E-03, 0.4867E-03, 0.3261E-03, 0.2174E-03, 0.1440E-03, 0.9477E-04, 0.6190E-04, 0.4007E-04])
 rsg = array('d', [0.4828E+02, 0.1862E+02, 0.8100E+01, 0.3852E+01, 0.1961E+01, 0.1053E+01, 0.5905E+00, 0.3426E+00, 0.2044E+00, 0.1248E+00, 0.7770E-01, 0.4911E-01, 0.3145E-01, 0.2036E-01, 0.1330E-01, 0.8743E-02, 0.5781E-02, 0.3840E-02, 0.2559E-02, 0.1708E-02, 0.1142E-02, 0.7635E-03, 0.5101E-03, 0.3402E-03, 0.2264E-03, 0.1501E-03, 0.9913E-04, 0.6512E-04, 0.4253E-04, 0.2759E-04, 0.1775E-04])
-  
+
 graphs = {}
 
 for br in range(0,len(BR)):
@@ -113,7 +113,7 @@ for br in range(0,len(BR)):
 graph_zprime = TGraph(len(m_x),m_x,zprime)
 graph_zprime.SetLineWidth(2)
 graph_zprime.SetLineStyle(4)
-graph_zprime.SetLineColor(30)
+graph_zprime.SetLineColor(32)
 
 graph_rsg = TGraph(len(m_x),m_x,rsg)
 graph_rsg.SetLineWidth(2)
@@ -165,7 +165,9 @@ l1.DrawLatex(0.19,0.43, "CMS Preliminary")
 l1.DrawLatex(0.19,0.35, "#intLdt = 5 fb^{-1}")
 l1.DrawLatex(0.20,0.30, "#sqrt{s} = 7 TeV")
 l1.DrawLatex(0.19,0.25, "|#eta| < 2.5, |#Delta#eta| < 1.3")
-l1.DrawLatex(0.19,0.20, "Wide Jets, CSVL Combined")
+l1.DrawLatex(0.19,0.20, "Wide Jets")
+l1.SetTextSize(0.05)
+l1.DrawLatex(0.53,0.20, "0, 1 and 2 b-tags")
 
 c.SetLogy()
 #c.SaveAs('CSVL_Combined_limit_obs_WideJets_RSG.eps')
