@@ -17,7 +17,7 @@ cd -
 
 
 let "MASS = $CONDOR_PROCESS*100 + 1000"
-LOG=`echo "stats_${MASS}_${BR}.log"`
+LOG=`echo "stats_${MASS}_${BR}_${FINAL_STATE}.log"`
 
 echo "Running: stats $MASS $BR $FINAL_STATE > $LOG 2>&1"
 /uscms/home/ferencek/MyAnalysis/MyAnalyzer/test/LimitCode/stats $MASS $BR $FINAL_STATE > $LOG 2>&1
