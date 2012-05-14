@@ -84,13 +84,13 @@ string LFRS = "gg";
 double masses_eff[5] = {500.0, 700.0, 1200.0, 2000.0, 3500.0};
 double eff0_h[5] = {0.075190481730750422, 0.092189096135135151, 0.17201223401970492, 0.32047805349296232, 0.44234154305258216};
 double eff2_h[5] = {0.52785268605907942, 0.48045368192262933, 0.334041805776981, 0.18690492564265077, 0.11826979776906879};
-double eff0_l[5] = {0.797008412750418, 0.7899207090355381, 0.766122804647168, 0.7150648517351865, 0.6096220599627092};
-double eff2_l[5] = {0.01242812179537409, 0.011704719223871349, 0.01510965489586756, 0.024720272819449995, 0.05001414522375375};
+double eff0_l[5] = {0.7975218492033489, 0.7907476660899039, 0.7660975206782392, 0.7202049472961713, 0.623953840878057};
+double eff2_l[5] = {0.012362415206298268, 0.011480309330892644, 0.015051930138445458, 0.022660032461222446, 0.04306123992381192};
 
 double eff0_err_h[5] = {0.010219706183534143, 0.012473030851601145, 0.019620181633986555, 0.040560602922774504, 0.039263984277089076};
 double eff2_err_h[5] = {0.02697328322836535, 0.027583170855405945, 0.02628211062017828, 0.030936028907094185, 0.020878956880156428};
-double eff0_err_l[5] = {0.029358140867892124, 0.03115511213973088, 0.027825440734214335, 0.049341830230287376, 0.053193566695665884};
-double eff2_err_l[5] = {0.004479227093928947, 0.0021581241053966384, 0.0038998893349127817, 0.010703628288447613, 0.016813324716293876};
+double eff0_err_l[5] = {0.029871577320823017, 0.03198206919409663, 0.027800156765285577, 0.0544819257912722, 0.05383311405862656};
+double eff2_err_l[5] = {0.004544933683004768, 0.0023825339983753434, 0.0039576140923348845, 0.012763868646675162, 0.017833102325434967};
 
 TGraph *g_eff0_h = new TGraph(5, masses_eff, eff0_h);
 TGraph *g_eff2_h = new TGraph(5, masses_eff, eff2_h);
@@ -364,7 +364,7 @@ int main(int argc, char* argv[])
   // commented out since the limit code currenlty does not work with combined shapes
   HISTCDF_0Tag=getSignalCDF(filename1.c_str(), histname1.str().c_str(), filename2.c_str(), histname2.str().c_str(), BR, g_eff0_h->Eval(SIGMASS), g_eff0_l->Eval(SIGMASS), "_0Tag");
   HISTCDF_1Tag=getSignalCDF(filename1.c_str(), histname1.str().c_str(), filename2.c_str(), histname2.str().c_str(), BR, (1-g_eff0_h->Eval(SIGMASS)-g_eff2_h->Eval(SIGMASS)), (1-g_eff0_l->Eval(SIGMASS)-g_eff2_l->Eval(SIGMASS)), "_1Tag");
-  HISTCDF_2Tag=getSignalCDF(filename1.c_str(), histname1.str().c_str(), filename1.c_str(), histname1.str().c_str(), BR, g_eff2_h->Eval(SIGMASS), g_eff2_l->Eval(SIGMASS), "_2Tag");
+  HISTCDF_2Tag=getSignalCDF(filename1.c_str(), histname1.str().c_str(), filename2.c_str(), histname2.str().c_str(), BR, g_eff2_h->Eval(SIGMASS), g_eff2_l->Eval(SIGMASS), "_2Tag");
 
   assert(HISTCDF_0Tag && HISTCDF_1Tag && HISTCDF_2Tag && SIGMASS>0);
 
@@ -373,7 +373,7 @@ int main(int argc, char* argv[])
 
   // create the output file
   ostringstream outputfile;
-  outputfile << OUTPUTFILE.substr(0,OUTPUTFILE.find(".root")) << "_" << masspoint << "_" << BR << ".root";
+  outputfile << OUTPUTFILE.substr(0,OUTPUTFILE.find(".root")) << "_" << masspoint << "_" << BR << "_" << LFRS << ".root";
   TFile* rootfile=new TFile(outputfile.str().c_str(), "RECREATE");  rootfile->cd();
 
   // setup an initial fitter to perform a background-only fit

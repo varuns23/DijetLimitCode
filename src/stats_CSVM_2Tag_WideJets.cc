@@ -76,8 +76,8 @@ string LFRS = "gg";
 double masses_eff[5] = {500.0, 700.0, 1200.0, 2000.0, 3500.0};
 double eff0_h[5] = {0.16798716163169919, 0.21224111240704921, 0.39341468290622961, 0.60489840598104605, 0.71507983127742547};
 double eff2_h[5] = {0.34639831542457067, 0.2894846919788272, 0.13766108321114659, 0.047756211824172577, 0.024802922727369742};
-double eff0_l[5] = {0.9462954650513276, 0.9355732264910863, 0.9174526617555037, 0.8896843609260039, 0.8274877773835034};
-double eff2_l[5] = {0.0006775340210505953, 0.0012216001521161046, 0.001876271590307605, 0.0040112904089601425, 0.0085645283408733};
+double eff0_l[5] = {0.9463027926797538, 0.9365073030766431, 0.918217090004583, 0.8945947299900272, 0.8354228549520759};
+double eff2_l[5] = {0.0006734326117105626, 0.0012648521715485266, 0.00189397840672012, 0.0035695287821486833, 0.0068609139082176675};
 // errors are from CSVL
 double eff0_err_h[5] = {0.010219706183534143, 0.012473030851601145, 0.019620181633986555, 0.040560602922774504, 0.039263984277089076};
 double eff2_err_h[5] = {0.02697328322836535, 0.027583170855405945, 0.02628211062017828, 0.030936028907094185, 0.020878956880156428};
@@ -111,7 +111,8 @@ double INTEGRAL(double *x0, double *xf, double *par)
   double norm=par[5];
   double p1=par[6];
   double p2=par[7];
-  double p3=par[8];
+  //double p3=par[8];
+  double p3=0;
 
   if( USE_DIAG_BASIS )
   {
@@ -199,7 +200,7 @@ int main(int argc, char* argv[])
   histname1 << "h_bb_" << masspoint;
   histname2 << "h_" << LFRS << "_" << masspoint;
 
-  HISTCDF=getSignalCDF(filename1.c_str(), histname1.str().c_str(), filename1.c_str(), histname1.str().c_str(), BR, g_eff2_h->Eval(SIGMASS), g_eff2_l->Eval(SIGMASS));
+  HISTCDF=getSignalCDF(filename1.c_str(), histname1.str().c_str(), filename2.c_str(), histname2.str().c_str(), BR, g_eff2_h->Eval(SIGMASS), g_eff2_l->Eval(SIGMASS));
 
   assert(HISTCDF && SIGMASS>0);
 
@@ -208,7 +209,7 @@ int main(int argc, char* argv[])
 
   // create the output file
   ostringstream outputfile;
-  outputfile << OUTPUTFILE.substr(0,OUTPUTFILE.find(".root")) << "_" << masspoint << "_" << BR << ".root";
+  outputfile << OUTPUTFILE.substr(0,OUTPUTFILE.find(".root")) << "_" << masspoint << "_" << BR << "_" << LFRS << ".root";
   TFile* rootfile=new TFile(outputfile.str().c_str(), "RECREATE");  rootfile->cd();
 
   // setup an initial fitter to perform a background-only fit
