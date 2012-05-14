@@ -46,4 +46,4 @@ Instructions:
 
 5) Run the code:
 
-   ./stats MASS BBbar_BR
+   ./stats MASS BR LFRS
