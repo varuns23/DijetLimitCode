@@ -112,10 +112,10 @@ xs_exp_limits_2sigma = array('d', [0.28620699999999999, 0.233014, 0.218521999999
 
 graph_exp_2sigma = TGraph(len(masses_exp),masses_exp,xs_exp_limits_2sigma)
 graph_exp_2sigma.SetFillColor(kYellow)
-graph_exp_2sigma.SetTitle("CSVM 2-tag, RSG-like resonances")
 graph_exp_2sigma.GetXaxis().SetTitle("Resonance Mass [GeV]")
 graph_exp_2sigma.GetYaxis().SetTitle("#sigma#timesBR(X#rightarrowjj)#timesA [pb]")
 graph_exp_2sigma.GetYaxis().SetRangeUser(1e-03,10)
+graph_exp_2sigma.GetXaxis().SetNdivisions(1005)
 
 graph_exp_1sigma = TGraph(len(masses_exp),masses_exp,xs_exp_limits_1sigma)
 graph_exp_1sigma.SetFillColor(kGreen+1)
