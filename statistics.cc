@@ -15,7 +15,7 @@ std::pair<double, double> evaluateInterval(TGraph* posterior, double alpha, doub
   double lowerCutOff = leftsidetail * alpha;
   double upperCutOff = 1. - (1.- leftsidetail) * alpha;
 
-  double upper, lower;
+  double upper = 0, lower = 0;
 
   // normalize the interval, first
   double normalization=0.0;
@@ -38,24 +38,13 @@ std::pair<double, double> evaluateInterval(TGraph* posterior, double alpha, doub
     posterior->GetPoint(i+1, nextx, nexty);
 
     double intervalIntegral=(nextx-firstx)*0.5*(firsty+nexty)/normalization;
-    double slope = (firsty-nexty) / (firstx-nextx);
 
     // interpolate lower
     if(integral<=lowerCutOff && (integral+intervalIntegral)>=lowerCutOff) {
-      float diff = lowerCutOff-integral;
-      if(diff > 0.0){
-      float realy = fabs(sqrt(firsty*firsty - (2*normalization*diff / slope)));
-      float realx = firstx - ((firsty-realy)/slope);
-      lower = realx;}
-      else{lower = firstx;}
+      lower=firstx;
     }
     if(integral<=upperCutOff && (integral+intervalIntegral)>=upperCutOff) {
-      float diff = upperCutOff-integral;
-      if(diff > 0.0){
-      float realy = fabs(sqrt(firsty*firsty - (2*normalization*diff / slope)));
-      float realx = firstx - ((firsty-realy)/slope);
-      upper = realx;}
-      else{upper = firstx;}
+      upper=firstx;
     }
     integral+=intervalIntegral;
   }
