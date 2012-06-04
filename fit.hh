@@ -42,6 +42,7 @@ public:
 
   // fitting, pulls, and all that
   void doFit(void);
+  void doFit(double* emat, int ndim);
   TH1D* calcPull(const char* name);
   TH1D* calcDiff(const char* name);
 

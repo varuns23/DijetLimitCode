@@ -47,7 +47,6 @@ Fitter::~Fitter()
   if(parameters_) delete[] parameters_;
 }
 
-
 void Fitter::doFit(void)
 {
   // setup the fitter so the information can be retrieved by nll
@@ -70,8 +69,33 @@ void Fitter::doFit(void)
   return;
 }
 
+void Fitter::doFit(double* emat, int ndim)
+{
+  // setup the fitter so the information can be retrieved by nll
+  Fitter::theFitter_=this;
+
+  // setup TMinuit
+  minuit_.SetPrintLevel(printlevel_);
+
+  // set the strategy
+  std::ostringstream command;
+  command << "SET STR " << strategy_;
+  minuit_.Command(command.str().c_str());
+
+  // do the fit
+  minuit_.SetFCN(nll);
+  Double_t arglist[1] = {10000.0};
+  Int_t err = 0;
+  minuit_.mnexcm("MIGRAD",arglist,1,err);
+  minuit_.mnemat(emat, ndim);
+
+  return;
+}
+
 TH1D* Fitter::calcPull(const char* name)
 {
+  const double alpha = 1 - 0.6827;
+ 
   TH1D* hPull=dynamic_cast<TH1D*>(data_->Clone(name));
   hPull->SetTitle("Pull Distribution");
 
@@ -82,12 +106,19 @@ TH1D* Fitter::calcPull(const char* name)
   for(int bin=1; bin<=data_->GetNbinsX(); bin++) {
     double binwidth=data_->GetBinWidth(bin);
     double N=data_->GetBinContent(bin)*binwidth;
-    double err=Fitter::histError(N);
+    double l = 0.5*TMath::ChisquareQuantile(alpha/2,2*N);
+    double h = (N==0) ? ( 0.5*TMath::ChisquareQuantile(1-alpha,2*(N+1)) ) : ( 0.5*TMath::ChisquareQuantile(1-alpha/2,2*(N+1)) );
+    double el = N-l;
+    double eh = h-N;
 
     double x0=data_->GetBinLowEdge(bin);
     double xf=data_->GetBinLowEdge(bin+1);
     double mu=functionIntegral_(&x0, &xf, getParameters());
 
+    double err = (el + eh)/2.;
+    if(N>=mu) err = el;
+    if(N<mu) err = eh;
+    
     double pull=(N-mu)/err;
     hPull->SetBinContent(bin, pull);
     hPull->SetBinError(bin, 1.0);
@@ -271,7 +302,10 @@ double Fitter::evalNLL(void)
 
 double Fitter::histError(double val)
 {
-  if(val<25.) return (TMath::ChisquareQuantile(0.95,2*(val+1)-TMath::ChisquareQuantile(0.05,2*val)))/4.0;
+  const double alpha = 1 - 0.6827;
+ 
+  if(val<25. && val>0.) return (TMath::ChisquareQuantile(1-alpha/2,2*(val+1))-TMath::ChisquareQuantile(alpha/2,2*val))/4.0;
+  else if(val==0.) return TMath::ChisquareQuantile(1-alpha,2*(val+1))/2.0;
   else return sqrt(val);
 }
 
