@@ -10,7 +10,10 @@
 #include <TF1.h>
 #include <TMath.h>
 #include <TROOT.h>
+#include <TVectorD.h>
 #include <TMatrixD.h>
+#include <TMatrixDSym.h>
+#include <TMatrixDSymEigen.h>
 
 #include "binneddata.hh"
 #include "fit.hh"
@@ -48,23 +51,22 @@ double BOUNDARIES[NBINS] = {  890,  944, 1000, 1058, 1118, 1181, 1246, 1313, 138
 
 // parameters
 double SIGMASS=0;
-const int NPARS=9;
+const int NPARS=11;
+const int NBKGPARS=3;
 const int POIINDEX=0; // which parameter is "of interest"
-const char* PAR_NAMES[9]    = { "xs", "lumi", "jes", "jer", "eff",  "bkg norm",        "p1",        "p2",         "p3" };
-      double PAR_GUESSES[9] = {  0.1,  4976.,   1.0,   1.0,   0.1, 1.54153e-03, 8.75468e+00, 5.23600e+00,           0. };
-const double PAR_MIN[9]     = {  0.0,    0.0,   0.0,   0.0,   0.0,      -9999.,      -9999.,      -9999.,       -9999. };
-const double PAR_MAX[9]     = { 1.E6,  6000.,   2.0,   2.0,   1.0,       9999.,       9999.,       9999.,       -9999. };
-      double PAR_ERR[9]     = { 0.01,   110.,  0.03,  0.10,  0.01,      1e-03,        1e-01,       1e-01,        1e-02 };
-const int PAR_TYPE[9]       = {    1,      1,     1,     1,     1,          0,            0,           0,            0 }; // 1 = signal, 0 = background
-const int PAR_NUIS[9]       = {    0,      1,     1,     1,     1,          1,            0,           0,            0 }; // 1 = nuisance parameter, 0 = not varied (the POI is not a nuisance parameter)
+const char* PAR_NAMES[NPARS]    = { "xs", "lumi", "jes", "jer", "eff",  "bkg norm",        "p1",        "p2", "n0", "n1", "n2" };
+      double PAR_GUESSES[NPARS] = {  0.1,  4976.,   1.0,   1.0,   0.1, 1.54153e-03, 8.75468e+00, 5.23600e+00,   10,   10,   10 };
+const double PAR_MIN[NPARS]     = {  0.0,    0.0,   0.0,   0.0,   0.0,       -9999,       -9999,       -9999,    9,    9,    9 };
+const double PAR_MAX[NPARS]     = { 1.E6,  6000.,   2.0,   2.0,   1.0,        9999,        9999,        9999,   11,   11,   11 };
+      double PAR_ERR[NPARS]     = { 0.01,   110.,  0.03,  0.10,  0.01,      1e-03,        1e-01,       1e-01,    1,    1,    1 };
+const int PAR_TYPE[NPARS]       = {    1,      1,     1,     1,     1,          0,            0,           0,    3,    3,    3 }; // 1 = signal; 0,3 = background (3 not used in the fit)
+const int PAR_NUIS[NPARS]       = {    0,      1,     1,     1,     1,          0,            0,           0,    1,    1,    1 }; // 1 = nuisance parameter, 0 = not varied (the POI is not a nuisance parameter)
 
-// turn on/off the use of diagonal basis
-int USE_DIAG_BASIS = 0;
-
-// background fit parameters in diagonal basis
-//                                      "p0'"       "p1'"       "p2'"        "p3'"
-const double PAR_DIAG[4]     = {       6.466,      5.195,      1.754,     -0.04229 };
-const double PAR_ERR_DIAG[4] = {    0.233569,  0.0472555, 0.00979109,  2.79489e-05 };
+// covariance matrix
+double COV_MATRIX[NPARS][NPARS];
+TMatrixDSym covMatrix = TMatrixDSym(NBKGPARS);
+TVectorD eigenValues = TVectorD(NBKGPARS);
+TMatrixD eigenVectors = TMatrixD(NBKGPARS,NBKGPARS);
 
 // branching ratio for bbbar final state (calculated wrt to the branching ratio for jet-jet final state)
 double BR = 1.;
@@ -78,11 +80,11 @@ double eff0_h[5] = {0.16798716163169919, 0.21224111240704921, 0.3934146829062296
 double eff2_h[5] = {0.34639831542457067, 0.2894846919788272, 0.13766108321114659, 0.047756211824172577, 0.024802922727369742};
 double eff0_l[5] = {0.9463027926797538, 0.9365073030766431, 0.918217090004583, 0.8945947299900272, 0.8354228549520759};
 double eff2_l[5] = {0.0006734326117105626, 0.0012648521715485266, 0.00189397840672012, 0.0035695287821486833, 0.0068609139082176675};
-// errors are from CSVL
-double eff0_err_h[5] = {0.010219706183534143, 0.012473030851601145, 0.019620181633986555, 0.040560602922774504, 0.039263984277089076};
-double eff2_err_h[5] = {0.02697328322836535, 0.027583170855405945, 0.02628211062017828, 0.030936028907094185, 0.020878956880156428};
-double eff0_err_l[5] = {0.029358140867892124, 0.03115511213973088, 0.027825440734214335, 0.049341830230287376, 0.053193566695665884};
-double eff2_err_l[5] = {0.004479227093928947, 0.0021581241053966384, 0.0038998893349127817, 0.010703628288447613, 0.016813324716293876};
+
+double eff0_err_h[5] = {0.019471270486660967, 0.023911240296464156, 0.030260307231750432, 0.042317807747886287, 0.034288290649272843};
+double eff2_err_h[5] = {0.027971620123859234, 0.027560564762199244, 0.017772429288867995, 0.011802981828283862, 0.0065087985232205768};
+double eff0_err_l[5] = {0.0078975358633488479, 0.0086901167534505497, 0.011114857477209861, 0.01654304045342625, 0.036155122620924018};
+double eff2_err_l[5] = {0.0004813355512350827, 0.00073133900480567551, 0.0008969252215006991, 0.0021474223459892749, 0.0033451187696960441};
 
 TGraph *g_eff0_h = new TGraph(5, masses_eff, eff0_h);
 TGraph *g_eff2_h = new TGraph(5, masses_eff, eff2_h);
@@ -111,25 +113,22 @@ double INTEGRAL(double *x0, double *xf, double *par)
   double norm=par[5];
   double p1=par[6];
   double p2=par[7];
-  //double p3=par[8];
-  double p3=0;
+  double p3=0.;
+  double n[NBKGPARS] = {0.};
+  n[0]=par[8]-10.;
+  n[1]=par[9]-10.;
+  n[2]=par[10]-10.;
 
-  if( USE_DIAG_BASIS )
+  if( COV_MATRIX[0][0]>0. && (n[0]!=0. || n[1]!=0. || n[2]!=0.) )
   {
-    double data[] = {
-        0.001221,   -0.003362,    -0.01631,     -0.9999,
-          0.9988,    -0.02858,     0.03878,   0.0006838,
-         0.01668,      0.9603,      0.2783,   -0.007747,
-         0.04519,      0.2774,     -0.9596,     0.01477,
-    };
-
-    TMatrixD T = TMatrixD(4,4);
-    T.SetMatrixArray(data);
-
-    norm = T(0,0)*par[5] + T(0,1)*par[6] + T(0,2)*par[7] + T(0,3)*par[8];
-    p1   = T(1,0)*par[5] + T(1,1)*par[6] + T(1,2)*par[7] + T(1,3)*par[8];
-    p2   = T(2,0)*par[5] + T(2,1)*par[6] + T(2,2)*par[7] + T(2,3)*par[8];
-    p3   = T(3,0)*par[5] + T(3,1)*par[6] + T(3,2)*par[7] + T(3,3)*par[8];
+    double g[NBKGPARS] = {0.};
+    for(int v=0; v<NBKGPARS; ++v)
+    {
+      for(int k=0; k<NBKGPARS; ++k) g[k]=n[v]*eigenValues(v)*eigenVectors[k][v];
+      norm += g[0];
+      p1   += g[1];
+      p2   += g[2];
+    }
   }
 
   // uses Simpson's 3/8th rule to compute the background integral over a short interval
@@ -179,11 +178,8 @@ int main(int argc, char* argv[])
   if(argc>2) BR = atof(argv[2]);
   if(argc>3) LFRS = argv[3];
 
-  if( USE_DIAG_BASIS )
-  {
-    PAR_GUESSES[5] = PAR_DIAG[0]; PAR_GUESSES[6] = PAR_DIAG[1]; PAR_GUESSES[7] = PAR_DIAG[2]; PAR_GUESSES[8] = PAR_DIAG[3];
-    PAR_ERR[5] = PAR_ERR_DIAG[0]; PAR_ERR[6] = PAR_ERR_DIAG[1]; PAR_ERR[7] = PAR_ERR_DIAG[2]; PAR_ERR[8] = PAR_ERR_DIAG[3];
-  }
+  // initialize the covariance matrix
+  for(int i = 0; i<NPARS; ++i) { for(int j = 0; j<NPARS; ++j) COV_MATRIX[i][j]=0.; }
 
   // set 2-tag efficiency and efficiency errors
   PAR_GUESSES[4] = g_eff2_h->Eval(SIGMASS)*BR + g_eff2_l->Eval(SIGMASS)*(1-BR);
@@ -217,7 +213,7 @@ int main(int argc, char* argv[])
   for(int i=0; i<NPARS; i++) initfit.defineParameter(i, PAR_NAMES[i], PAR_GUESSES[i], PAR_ERR[i], PAR_MIN[i], PAR_MAX[i], PAR_NUIS[i]);
 
   // do an initial background-only fit, first
-  for(int i=0; i<NPARS; i++) if(PAR_TYPE[i]==1 || PAR_MIN[i]==PAR_MAX[i]) initfit.fixParameter(i);
+  for(int i=0; i<NPARS; i++) if(PAR_TYPE[i]>=1 || PAR_MIN[i]==PAR_MAX[i]) initfit.fixParameter(i);
   initfit.setParameter(POIINDEX, 0.0); // set the POI value to 0
   initfit.doFit();
   initfit.calcPull("pull_bkg_init")->Write();
@@ -238,40 +234,33 @@ int main(int argc, char* argv[])
   for(int i=0; i<NPARS; i++) fit_data.defineParameter(i, PAR_NAMES[i], initfit.getParameter(i), PAR_ERR[i], PAR_MIN[i], PAR_MAX[i], PAR_NUIS[i]);
 
   // perform a background-only fit
-  for(int i=0; i<NPARS; i++) if(PAR_TYPE[i]==1 || PAR_MIN[i]==PAR_MAX[i]) fit_data.fixParameter(i);
+  for(int i=0; i<NPARS; i++) if(PAR_TYPE[i]>=1 || PAR_MIN[i]==PAR_MAX[i]) fit_data.fixParameter(i);
   fit_data.setParameter(POIINDEX, 0.0); // set the POI value to 0
-  fit_data.doFit();
+  fit_data.doFit(&COV_MATRIX[0][0], NPARS);
   fit_data.setPrintLevel(0);
   fit_data.calcPull("pull_bkg_0")->Write();
   fit_data.calcDiff("diff_bkg_0")->Write();
   fit_data.write("fit_bkg_0");
 
-  // fix the ranges for the background parameters before calculating the posterior
-  for(int i=0; i<NPARS; i++) {
-    if(PAR_TYPE[i]==0 && PAR_NUIS[i]==1) {
-      double val, err;
-      fit_data.getParameter(i, val, err);
-      if(USE_DIAG_BASIS) err = PAR_ERR[i];
-      fit_data.setParLimits(i, val-err, val+err);
-    }
-  }
+  // calculate eigenvalues and eigenvectors
+  for(int i = 0; i<NBKGPARS; ++i) { for(int j = 0; j<NBKGPARS; ++j) { covMatrix(i,j)=COV_MATRIX[i][j]; } }
+  const TMatrixDSymEigen eigen_data(covMatrix);
+  eigenValues = eigen_data.GetEigenValues();
+  eigenValues.Sqrt();
+  eigenVectors = eigen_data.GetEigenVectors();
 
   TGraph* post_data=fit_data.calculatePosterior(NSAMPLES);
   post_data->Write("post_0");
-
-  // put the ranges back in place
-  for(int i=0; i<NPARS; i++) {
-    if(PAR_TYPE[i]==0 && PAR_NUIS[i]==1) {
-      fit_data.setParLimits(i, PAR_MIN[i], PAR_MAX[i]);
-    }
-  }
 
   // evaluate the limit
   pair<double, double> bounds_data=evaluateInterval(post_data, ALPHA, LEFTSIDETAIL);
   observedLowerBound=bounds_data.first;
   observedUpperBound=bounds_data.second;
 
-  // perform the PEs (0 = data)
+  // reset the covariance matrix
+  for(int i = 0; i<NPARS; ++i) { for(int j = 0; j<NPARS; ++j) COV_MATRIX[i][j]=0.; }
+
+  // perform the PEs
   for(int pe=1; pe<=NPES; ++pe) {
 
     cout << "*********** pe=" << pe << " ***********" << endl;
@@ -286,22 +275,19 @@ int main(int argc, char* argv[])
     for(int i=0; i<NPARS; i++) fit.defineParameter(i, PAR_NAMES[i], fit_data.getParameter(i), PAR_ERR[i], PAR_MIN[i], PAR_MAX[i], PAR_NUIS[i]);
 
     // perform a background-only fit
-    for(int i=0; i<NPARS; i++) if(PAR_TYPE[i]==1 || PAR_MIN[i]==PAR_MAX[i]) fit.fixParameter(i);
+    for(int i=0; i<NPARS; i++) if(PAR_TYPE[i]>=1 || PAR_MIN[i]==PAR_MAX[i]) fit.fixParameter(i);
     fit.setParameter(POIINDEX, 0.0); // set the POI value to 0
-    fit.doFit();
+    fit.doFit(&COV_MATRIX[0][0], NPARS);
     fit.calcPull((string("pull_bkg")+pestr.str()).c_str())->Write();
     fit.calcDiff((string("diff_bkg")+pestr.str()).c_str())->Write();
     fit.write((string("fit_bkg")+pestr.str()).c_str());
 
-    // fix the ranges for the background parameters before calculating the posterior
-    for(int i=0; i<NPARS; i++) {
-      if(PAR_TYPE[i]==0 && PAR_NUIS[i]==1) {
-	double val, err;
-	fit.getParameter(i, val, err);
-        if(USE_DIAG_BASIS) err = PAR_ERR[i];
-	fit.setParLimits(i, val-err, val+err);
-      }
-    }
+    // calculate eigenvalues and eigenvectors
+    for(int i = 0; i<NBKGPARS; ++i) { for(int j = 0; j<NBKGPARS; ++j) { covMatrix(i,j)=COV_MATRIX[i][j]; } }
+    const TMatrixDSymEigen eigen(covMatrix);
+    eigenValues = eigen.GetEigenValues();
+    eigenValues.Sqrt();
+    eigenVectors = eigen.GetEigenVectors();
 
     TGraph* post=fit.calculatePosterior(NSAMPLES);
     post->Write((string("post")+pestr.str()).c_str());
@@ -312,13 +298,6 @@ int main(int argc, char* argv[])
       continue;
     }
 
-    // put the ranges back in place
-    for(int i=0; i<NPARS; i++) {
-      if(PAR_TYPE[i]==0 && PAR_NUIS[i]==1) {
-	fit.setParLimits(i, PAR_MIN[i], PAR_MAX[i]);
-      }
-    }
-
     // evaluate the limit
     pair<double, double> bounds=evaluateInterval(post, ALPHA, LEFTSIDETAIL);
     if(bounds.first==0. && bounds.second>0.)
@@ -326,6 +305,9 @@ int main(int argc, char* argv[])
       expectedLowerBounds.push_back(bounds.first);
       expectedUpperBounds.push_back(bounds.second);
     }
+
+    // reset the covariance matrix
+    for(int i = 0; i<NPARS; ++i) { for(int j = 0; j<NPARS; ++j) COV_MATRIX[i][j]=0.; }
   }
 
   ////////////////////////////////////////////////////////////////////////////////
