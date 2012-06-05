@@ -288,6 +288,9 @@ int main(int argc, char* argv[])
     for(int i = 0; i<NBKGPARS; ++i) { for(int j = 0; j<NBKGPARS; ++j) { covMatrix(i,j)=COV_MATRIX[i][j]; } }
     const TMatrixDSymEigen eigen(covMatrix);
     eigenValues = eigen.GetEigenValues();
+    bool hasNegativeElement = false;
+    for(int i = 0; i<NBKGPARS; ++i) { if(eigenValues(i)<0.) hasNegativeElement = true; }
+    if(hasNegativeElement) continue;
     eigenValues.Sqrt();
     eigenVectors = eigen.GetEigenVectors();
 

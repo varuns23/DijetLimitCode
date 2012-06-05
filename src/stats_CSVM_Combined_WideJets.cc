@@ -463,16 +463,25 @@ int main(int argc, char* argv[])
     for(int i = 0; i<NBKGPARS; ++i) { for(int j = 0; j<NBKGPARS; ++j) { covMatrix0(i,j)=COV_MATRIX[i][j]; } }
     const TMatrixDSymEigen eigen0(covMatrix0);
     eigenValues0 = eigen0.GetEigenValues();
+    bool hasNegativeElement = false;
+    for(int i = 0; i<NBKGPARS; ++i) { if(eigenValues0(i)<0.) hasNegativeElement = true; }
+    if(hasNegativeElement) continue;
     eigenValues0.Sqrt();
     eigenVectors0 = eigen0.GetEigenVectors();
     for(int i = 0; i<NBKGPARS; ++i) { for(int j = 0; j<NBKGPARS; ++j) { covMatrix1(i,j)=COV_MATRIX[i+4][j+4]; } }
     const TMatrixDSymEigen eigen1(covMatrix1);
     eigenValues1 = eigen1.GetEigenValues();
+    hasNegativeElement = false;
+    for(int i = 0; i<NBKGPARS; ++i) { if(eigenValues1(i)<0.) hasNegativeElement = true; }
+    if(hasNegativeElement) continue;
     eigenValues1.Sqrt();
     eigenVectors1 = eigen1.GetEigenVectors();
     for(int i = 0; i<(NBKGPARS-1); ++i) { for(int j = 0; j<(NBKGPARS-1); ++j) { covMatrix2(i,j)=COV_MATRIX[i+8][j+8]; } }
     const TMatrixDSymEigen eigen2(covMatrix2);
     eigenValues2 = eigen2.GetEigenValues();
+    hasNegativeElement = false;
+    for(int i = 0; i<(NBKGPARS-1); ++i) { if(eigenValues2(i)<0.) hasNegativeElement = true; }
+    if(hasNegativeElement) continue;
     eigenValues2.Sqrt();
     eigenVectors2 = eigen2.GetEigenVectors();
 
