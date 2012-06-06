@@ -31,6 +31,9 @@ const int NPES=0; // 100
 // number of samples of nuisance parameters for Bayesian MC integration
 const int NSAMPLES=0; // 1000
 
+// use a B-only fit for the background systematics
+const bool useBonlyFit = 0;
+
 // alpha (1-alpha=confidence interval)
 const double ALPHA=0.05;
 
@@ -70,9 +73,6 @@ double BOUNDARIES[NBINS] = {   890,   944,  1000,  1058,  1118,  1181,  1246,  1
                              11770, 11856, 11945, 12037, 12132, 12231, 12332, 12438, 12546, 12659, 12775, 12895, 13019,
                              13147, 13279, 13416, 13558, 13704, 13854, 14010, 14171, 14337, 14509, 14686, 14869, 15058  };
 
-// a temporary hack that sets the signal xs to 0 when needed (using fit_data.setParameter(POIINDEX, 0.0); does not seem to work)
-bool xsToZero = false;
-
 // covariance matrix
 double COV_MATRIX[NPARS][NPARS];
 TMatrixDSym covMatrix0 = TMatrixDSym(NBKGPARS);
@@ -84,6 +84,9 @@ TVectorD eigenValues1 = TVectorD(NBKGPARS);
 TMatrixD eigenVectors1 = TMatrixD(NBKGPARS,NBKGPARS);
 TVectorD eigenValues2 = TVectorD(NBKGPARS);
 TMatrixD eigenVectors2 = TMatrixD(NBKGPARS,NBKGPARS);
+
+// shift in the counter used to extract the covariance matrix
+int shift = 1;
 
 // branching ratio for bbbar final state (calculated wrt to the branching ratio for jet-jet final state)
 double BR = 1.;
@@ -140,8 +143,7 @@ double INTEGRAL_0Tag(double *fx0, double *fxf, double *par)
   n[2]=par[20]-10.;
   n[3]=0.;
 
-  if(xsToZero) xs=0.;
-  if( COV_MATRIX[1][1]>0. && (n[0]!=0. || n[1]!=0. || n[2]!=0. || n[3]!=0.) )
+  if( COV_MATRIX[0+shift][0+shift]>0. && (n[0]!=0. || n[1]!=0. || n[2]!=0. || n[3]!=0.) )
   {
     double g[NBKGPARS] = {0.};
     for(int v=0; v<(NBKGPARS-1); ++v)
@@ -206,8 +208,7 @@ double INTEGRAL_1Tag(double *fx0, double *fxf, double *par)
   n[2]=par[23]-10.;
   n[3]=0.;
 
-  if(xsToZero) xs=0.;
-  if( COV_MATRIX[5][5]>0. && (n[0]!=0. || n[1]!=0. || n[2]!=0. || n[3]!=0.) )
+  if( COV_MATRIX[4+shift][4+shift]>0. && (n[0]!=0. || n[1]!=0. || n[2]!=0. || n[3]!=0.) )
   {
     double g[NBKGPARS] = {0.};
     for(int v=0; v<(NBKGPARS-1); ++v)
@@ -272,8 +273,7 @@ double INTEGRAL_2Tag(double *fx0, double *fxf, double *par)
   n[2]=0.;
   n[3]=0.;
 
-  if(xsToZero) xs=0.;
-  if( COV_MATRIX[9][9]>0. && (n[0]!=0. || n[1]!=0. || n[2]!=0. || n[3]!=0.) )
+  if( COV_MATRIX[8+shift][8+shift]>0. && (n[0]!=0. || n[1]!=0. || n[2]!=0. || n[3]!=0.) )
   {
     double g[NBKGPARS] = {0.};
     for(int v=0; v<(NBKGPARS-2); ++v)
@@ -345,6 +345,8 @@ int main(int argc, char* argv[])
   if(argc>2) BR = atof(argv[2]);
   if(argc>3) LFRS = argv[3];
 
+  if(useBonlyFit) shift = 0;
+
   // initialize the covariance matrix
   for(int i = 0; i<NPARS; ++i) { for(int j = 0; j<NPARS; ++j) COV_MATRIX[i][j]=0.; }
 
@@ -383,19 +385,24 @@ int main(int argc, char* argv[])
   outputfile << OUTPUTFILE.substr(0,OUTPUTFILE.find(".root")) << "_" << masspoint << "_" << BR << "_" << LFRS << ".root";
   TFile* rootfile=new TFile(outputfile.str().c_str(), "RECREATE");  rootfile->cd();
 
+  // POI value
+  double POIval;
+
   // setup an initial fitter to perform a signal+background fit
   Fitter initfit(data, INTEGRAL);
   for(int i=0; i<NPARS; i++) initfit.defineParameter(i, PAR_NAMES[i], PAR_GUESSES[i], PAR_ERR[i], PAR_MIN[i], PAR_MAX[i], PAR_NUIS[i]);
 
   // do an initial signal+background fit first
   for(int i=0; i<NPARS; i++) if(PAR_TYPE[i]>=2 || PAR_MIN[i]==PAR_MAX[i]) initfit.fixParameter(i);
-  initfit.setParameter(POIINDEX, 0.0); // set the POI value to 0
   initfit.doFit();
-  xsToZero=true; // set the POI value to 0 to get the B component of the S+B fit (for calculating pulls and generating pseudo-data)
+  POIval = initfit.getParameter(POIINDEX); // get the POI value for later use
+  initfit.fixParameter(POIINDEX); // a parameter needs to be fixed before its value can be changed
+  initfit.setParameter(POIINDEX, 0.0); // set the POI value to 0 to get the B component of the S+B fit (for calculating pulls and generating pseudo-data)
+  initfit.setPrintLevel(0);
   initfit.calcPull("pull_bkg_init")->Write();
   initfit.calcDiff("diff_bkg_init")->Write();
   initfit.write("fit_bkg_init");
-  xsToZero=false;
+  initfit.setParameter(POIINDEX, POIval);
 
   // setup the limit values
   double observedLowerBound, observedUpperBound;
@@ -410,29 +417,30 @@ int main(int argc, char* argv[])
   //fit_data.setPrintLevel(0);
   for(int i=0; i<NPARS; i++) fit_data.defineParameter(i, PAR_NAMES[i], initfit.getParameter(i), PAR_ERR[i], PAR_MIN[i], PAR_MAX[i], PAR_NUIS[i]);
 
-  // perform a signal+background fit
+  // perform a signal+background fit or a background-only fit with a fixed non-zero signal
   for(int i=0; i<NPARS; i++) if(PAR_TYPE[i]>=2 || PAR_MIN[i]==PAR_MAX[i]) fit_data.fixParameter(i);
-  fit_data.setParameter(POIINDEX, 0.0); // set the POI value to 0
+  if(useBonlyFit) { fit_data.doFit(); fit_data.fixParameter(POIINDEX); }
   fit_data.doFit(&COV_MATRIX[0][0], NPARS);
-  xsToZero=true; // set the POI value to 0 to get the B component of the S+B fit (for calculating pulls and generating pseudo-data)
+  POIval = fit_data.getParameter(POIINDEX); // get the POI value for later use
+  fit_data.fixParameter(POIINDEX); // a parameter needs to be fixed before its value can be changed
+  fit_data.setParameter(POIINDEX, 0.0); // set the POI value to 0 to get the B component of the S+B fit (for calculating pulls and generating pseudo-data)
   fit_data.setPrintLevel(0);
   fit_data.calcPull("pull_bkg_0")->Write();
   fit_data.calcDiff("diff_bkg_0")->Write();
   fit_data.write("fit_bkg_0");
-  xsToZero=false;
 
   // calculate eigenvalues and eigenvectors
-  for(int i = 0; i<NBKGPARS; ++i) { for(int j = 0; j<NBKGPARS; ++j) { covMatrix0(i,j)=COV_MATRIX[i+1][j+1]; } }
+  for(int i = 0; i<NBKGPARS; ++i) { for(int j = 0; j<NBKGPARS; ++j) { covMatrix0(i,j)=COV_MATRIX[i+shift][j+shift]; } }
   const TMatrixDSymEigen eigen_data0(covMatrix0);
   eigenValues0 = eigen_data0.GetEigenValues();
   eigenValues0.Sqrt();
   eigenVectors0 = eigen_data0.GetEigenVectors();
-  for(int i = 0; i<NBKGPARS; ++i) { for(int j = 0; j<NBKGPARS; ++j) { covMatrix1(i,j)=COV_MATRIX[i+5][j+5]; } }
+  for(int i = 0; i<NBKGPARS; ++i) { for(int j = 0; j<NBKGPARS; ++j) { covMatrix1(i,j)=COV_MATRIX[i+4+shift][j+4+shift]; } }
   const TMatrixDSymEigen eigen_data1(covMatrix1);
   eigenValues1 = eigen_data1.GetEigenValues();
   eigenValues1.Sqrt();
   eigenVectors1 = eigen_data1.GetEigenVectors();
-  for(int i = 0; i<NBKGPARS; ++i) { for(int j = 0; j<NBKGPARS; ++j) { covMatrix2(i,j)=COV_MATRIX[i+9][j+9]; } }
+  for(int i = 0; i<NBKGPARS; ++i) { for(int j = 0; j<NBKGPARS; ++j) { covMatrix2(i,j)=COV_MATRIX[i+8+shift][j+8+shift]; } }
   const TMatrixDSymEigen eigen_data2(covMatrix2);
   eigenValues2 = eigen_data2.GetEigenValues();
   eigenValues2.Sqrt();
@@ -457,26 +465,27 @@ int main(int argc, char* argv[])
     pestr << "_" << pe;
 
     // setup the fitter with the input from the signal+background fit
-    xsToZero=true; // set the POI value to 0 to get the B component of the S+B fit (for calculating pulls and generating pseudo-data)
+    fit_data.setParameter(POIINDEX, 0.0); // set the POI value to 0 to get the B component of the S+B fit (for calculating pulls and generating pseudo-data)
     TH1D* hist = fit_data.makePseudoData((string("data")+pestr.str()).c_str());
-    xsToZero=false;
+    fit_data.setParameter(POIINDEX, POIval);
+
     Fitter fit(hist, INTEGRAL);
     fit.setPOIIndex(POIINDEX);
     fit.setPrintLevel(0);
     for(int i=0; i<NPARS; i++) fit.defineParameter(i, PAR_NAMES[i], fit_data.getParameter(i), PAR_ERR[i], PAR_MIN[i], PAR_MAX[i], PAR_NUIS[i]);
 
-    // perform a signal+background fit
+    // perform a signal+background fit or a background-only fit with a fixed non-zero signal
     for(int i=0; i<NPARS; i++) if(PAR_TYPE[i]>=2 || PAR_MIN[i]==PAR_MAX[i]) fit.fixParameter(i);
-    fit.setParameter(POIINDEX, 0.0); // set the POI value to 0
+    if(useBonlyFit) { fit.doFit(); fit.fixParameter(POIINDEX); }
     fit.doFit(&COV_MATRIX[0][0], NPARS);
-    xsToZero=true; // set the POI value to 0 to get the B component of the S+B fit (for calculating pulls and generating pseudo-data)
+    fit.fixParameter(POIINDEX); // a parameter needs to be fixed before its value can be changed
+    fit.setParameter(POIINDEX, 0.0); // set the POI value to 0 to get the B component of the S+B fit (for calculating pulls and generating pseudo-data)
     fit.calcPull((string("pull_bkg")+pestr.str()).c_str())->Write();
     fit.calcDiff((string("diff_bkg")+pestr.str()).c_str())->Write();
     fit.write((string("fit_bkg")+pestr.str()).c_str());
-    xsToZero=false;
 
     // calculate eigenvalues and eigenvectors
-    for(int i = 0; i<NBKGPARS; ++i) { for(int j = 0; j<NBKGPARS; ++j) { covMatrix0(i,j)=COV_MATRIX[i+1][j+1]; } }
+    for(int i = 0; i<NBKGPARS; ++i) { for(int j = 0; j<NBKGPARS; ++j) { covMatrix0(i,j)=COV_MATRIX[i+shift][j+shift]; } }
     const TMatrixDSymEigen eigen0(covMatrix0);
     eigenValues0 = eigen0.GetEigenValues();
     bool hasNegativeElement = false;
@@ -484,7 +493,7 @@ int main(int argc, char* argv[])
     if(hasNegativeElement) continue;
     eigenValues0.Sqrt();
     eigenVectors0 = eigen0.GetEigenVectors();
-    for(int i = 0; i<NBKGPARS; ++i) { for(int j = 0; j<NBKGPARS; ++j) { covMatrix1(i,j)=COV_MATRIX[i+5][j+5]; } }
+    for(int i = 0; i<NBKGPARS; ++i) { for(int j = 0; j<NBKGPARS; ++j) { covMatrix1(i,j)=COV_MATRIX[i+4+shift][j+4+shift]; } }
     const TMatrixDSymEigen eigen1(covMatrix1);
     eigenValues1 = eigen1.GetEigenValues();
     hasNegativeElement = false;
@@ -492,7 +501,7 @@ int main(int argc, char* argv[])
     if(hasNegativeElement) continue;
     eigenValues1.Sqrt();
     eigenVectors1 = eigen1.GetEigenVectors();
-    for(int i = 0; i<NBKGPARS; ++i) { for(int j = 0; j<NBKGPARS; ++j) { covMatrix2(i,j)=COV_MATRIX[i+9][j+9]; } }
+    for(int i = 0; i<NBKGPARS; ++i) { for(int j = 0; j<NBKGPARS; ++j) { covMatrix2(i,j)=COV_MATRIX[i+8+shift][j+8+shift]; } }
     const TMatrixDSymEigen eigen2(covMatrix2);
     eigenValues2 = eigen2.GetEigenValues();
     hasNegativeElement = false;
