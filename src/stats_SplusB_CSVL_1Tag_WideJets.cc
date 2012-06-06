@@ -29,7 +29,7 @@ using namespace std;
 const int NPES=0; // 100
 
 // number of samples of nuisance parameters for Bayesian MC integration
-const int NSAMPLES=0; // 1000
+const int NSAMPLES=0; // 2000
 
 // use a B-only fit for the background systematics
 const bool useBonlyFit = 0;
