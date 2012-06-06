@@ -262,14 +262,14 @@ TGraph* Fitter::calculatePosterior(int nSamples)
 
   // identify trivially small points on the left
   std::vector<int> pointsToRemove;
-  for(int i=0; i<graph->GetN()-1; i++) {
-    double x, y, nextx, nexty;
-    graph->GetPoint(i, x, y);
-    graph->GetPoint(i+1, nextx, nexty);
-
-    if(y/maximumVal<1.E-3 && nexty/maximumVal<1.E-3) pointsToRemove.push_back(i);
-    else break;
-  }
+//   for(int i=0; i<graph->GetN()-1; i++) {
+//     double x, y, nextx, nexty;
+//     graph->GetPoint(i, x, y);
+//     graph->GetPoint(i+1, nextx, nexty);
+// 
+//     if(y/maximumVal<1.E-3 && nexty/maximumVal<1.E-3) pointsToRemove.push_back(i);
+//     else break;
+//   }
 
   // identify trivially small points on the right
   for(int i=graph->GetN()-1; i>=1; i--) {
