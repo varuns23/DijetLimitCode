@@ -270,6 +270,7 @@ int main(int argc, char* argv[])
     pestr << "_" << pe;
 
     // setup the fitter with the input from the background-only fit
+    fit_data.setParameter(POIINDEX, 0.0); // set the POI value to 0 when generating pseudo-data
     TH1D* hist = fit_data.makePseudoData((string("data")+pestr.str()).c_str());
     Fitter fit(hist, INTEGRAL);
     fit.setPOIIndex(POIINDEX);
