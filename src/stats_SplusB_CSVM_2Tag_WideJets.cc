@@ -54,7 +54,7 @@ double BOUNDARIES[NBINS] = {  890,  944, 1000, 1058, 1118, 1181, 1246, 1313, 138
 
 // parameters
 double SIGMASS=0;
-const int NPARS=12;
+const int NPARS=11;
 const int NBKGPARS=3;
 const int POIINDEX=0; // which parameter is "of interest"
 const char* PAR_NAMES[NPARS]    = { "xs", "lumi", "jes", "jer", "eff",  "bkg norm",        "p1",        "p2", "n0", "n1", "n2" };
@@ -62,7 +62,7 @@ const char* PAR_NAMES[NPARS]    = { "xs", "lumi", "jes", "jer", "eff",  "bkg nor
 const double PAR_MIN[NPARS]     = {  0.0,    0.0,   0.0,   0.0,   0.0,       -9999,       -9999,       -9999,    9,    9,    9 };
 const double PAR_MAX[NPARS]     = { 1.E6,  6000.,   2.0,   2.0,   1.0,        9999,        9999,        9999,   11,   11,   11 };
       double PAR_ERR[NPARS]     = { 0.01,   110.,  0.03,  0.10,  0.01,      1e-03,        1e-01,       1e-01,    1,    1,    1 };
-const int PAR_TYPE[NPARS]       = {    1,      1,     1,     1,     1,          0,            0,           0,    3,    3,    3 }; // 1,2 = signal (2 not used in the fit); 0,3 = background (3 not used in the fit)
+const int PAR_TYPE[NPARS]       = {    1,      2,     2,     2,     2,          0,            0,           0,    3,    3,    3 }; // 1,2 = signal (2 not used in the fit); 0,3 = background (3 not used in the fit)
 const int PAR_NUIS[NPARS]       = {    0,      1,     1,     1,     1,          0,            0,           0,    1,    1,    1 }; // 1 = nuisance parameter, 0 = not varied (the POI is not a nuisance parameter)
 
 // covariance matrix
@@ -121,9 +121,9 @@ double INTEGRAL(double *x0, double *xf, double *par)
   double p2=par[7];
   double p3=0.;
   double n[NBKGPARS] = {0.};
-  n[0]=par[9]-10.;
-  n[1]=par[10]-10.;
-  n[2]=par[11]-10.;
+  n[0]=par[8]-10.;
+  n[1]=par[9]-10.;
+  n[2]=par[10]-10.;
 
   if( COV_MATRIX[0+shift][0+shift]>0. && (n[0]!=0. || n[1]!=0. || n[2]!=0.) )
   {
