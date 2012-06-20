@@ -1,0 +1,96 @@
+#!/usr/bin/env python
+
+import sys, os, subprocess, string, re
+from ROOT import *
+from array import array
+
+
+gROOT.SetBatch(kTRUE);
+gStyle.SetOptStat(0)
+gStyle.SetOptTitle(0)
+gStyle.SetTitleFont(42, "XYZ")
+gStyle.SetTitleSize(0.06, "XYZ")
+gStyle.SetLabelFont(42, "XYZ")
+gStyle.SetLabelSize(0.05, "XYZ")
+gStyle.SetCanvasBorderMode(0)
+gStyle.SetFrameBorderMode(0)
+gStyle.SetCanvasColor(kWhite)
+gStyle.SetPadTickX(1)
+gStyle.SetPadTickY(1)
+gStyle.SetPadLeftMargin(0.15)
+gStyle.SetPadRightMargin(0.05)
+gStyle.SetPadTopMargin(0.05)
+gStyle.SetPadBottomMargin(0.15)
+gROOT.ForceStyle()
+
+
+masses = array('d', [1000.0, 1100.0, 1200.0, 1300.0, 1400.0, 1500.0, 1600.0, 1700.0, 1800.0, 1900.0, 2000.0, 2100.0, 2200.0, 2300.0, 2400.0, 2500.0, 2600.0, 2700.0, 2800.0, 2900.0, 3000.0, 3100.0, 3200.0, 3300.0, 3400.0, 3500.0, 3600.0, 3700.0, 3800.0, 3900.0, 4000.0])
+xs_CSVL = array('d', [0.42205599999999999, 0.336426, 0.31717499999999998, 0.23430999999999999, 0.201989, 0.18076300000000001, 0.15861700000000001, 0.127743, 0.12256599999999999, 0.10084600000000001, 0.108635, 0.083949800000000005, 0.074023699999999998, 0.064547900000000005, 0.054240900000000002, 0.049187500000000002, 0.046210000000000001, 0.040054199999999998, 0.035918499999999999, 0.032310199999999997, 0.029479700000000001, 0.026957100000000001, 0.025110500000000001, 0.024518999999999999, 0.023156199999999998, 0.020504999999999999, 0.019421299999999999, 0.018341400000000001, 0.017713099999999999, 0.016660899999999999, 0.015907999999999999])
+xs_CSVM = array('d', [0.41155900000000001, 0.29785, 0.29982199999999998, 0.224719, 0.20998600000000001, 0.189439, 0.18750700000000001, 0.16129499999999999, 0.164266, 0.156667, 0.142431, 0.123789, 0.115365, 0.107075, 0.101767, 0.092097499999999999, 0.082852099999999998, 0.078140600000000004, 0.074321200000000004, 0.067419800000000002, 0.0638402, 0.0607194, 0.058895299999999998, 0.056441100000000001, 0.055249699999999999, 0.0540676, 0.057136100000000002, 0.058768899999999999, 0.060814500000000001, 0.061073500000000003, 0.062803300000000006])
+xs_TCHEL = array('d', [0.71155400000000002, 0.54783800000000005, 0.40883799999999998, 0.33978700000000001, 0.28019899999999998, 0.206705, 0.18678600000000001, 0.15034600000000001, 0.11334, 0.102211, 0.082926799999999995, 0.063283199999999998, 0.055518600000000001, 0.047491100000000001, 0.0423807, 0.035191600000000003, 0.027573199999999999, 0.023756800000000002, 0.019728599999999999, 0.016459700000000001, 0.0138233, 0.012191799999999999, 0.0106222, 0.009025, 0.0079102100000000009, 0.0071857199999999996, 0.0063559100000000002, 0.0056226899999999996, 0.00495094, 0.0042610900000000004, 0.00380212])
+
+g_CSVL = TGraph(len(masses),masses,xs_CSVL)
+g_CSVL.SetMarkerStyle(24)
+g_CSVL.SetMarkerColor(kGreen+2)
+g_CSVL.SetLineWidth(2)
+g_CSVL.SetLineStyle(1)
+g_CSVL.SetLineColor(kGreen+2)
+g_CSVL.GetXaxis().SetTitle("Resonance Mass [GeV]")
+g_CSVL.GetYaxis().SetTitle("#sigma#timesBR(X#rightarrowjj)#timesA [pb]")
+g_CSVL.GetYaxis().SetRangeUser(1e-03,10)
+g_CSVL.GetXaxis().SetNdivisions(1005)
+
+g_CSVM = TGraph(len(masses),masses,xs_CSVM)
+g_CSVM.SetMarkerStyle(25)
+g_CSVM.SetMarkerColor(kRed)
+g_CSVM.SetLineWidth(2)
+g_CSVM.SetLineStyle(2)
+g_CSVM.SetLineColor(kRed)
+
+g_TCHEL = TGraph(len(masses),masses,xs_TCHEL)
+g_TCHEL.SetMarkerStyle(26)
+g_TCHEL.SetMarkerColor(kBlue)
+g_TCHEL.SetLineWidth(2)
+g_TCHEL.SetLineStyle(3)
+g_TCHEL.SetLineColor(kBlue)
+
+
+c = TCanvas("c", "",800,800)
+c.cd()
+
+g_CSVL.Draw("AL")
+g_CSVM.Draw("L")
+g_TCHEL.Draw("L")
+
+legend = TLegend(.45,.60,.85,.80)
+legend.SetBorderSize(0)
+legend.SetFillColor(0)
+legend.SetFillStyle(0)
+legend.SetTextFont(42)
+legend.SetTextSize(0.03)
+legend.SetHeader("Exp. 95% CL Upper Limits (stat. only)")
+legend.AddEntry(g_TCHEL, "TCHEL","l")
+legend.AddEntry(g_CSVL, "CSVL","l")
+legend.AddEntry(g_CSVM, "CSVM","l")
+legend.Draw()
+
+l1 = TLatex()
+l1.SetTextAlign(12)
+l1.SetTextFont(42)
+l1.SetNDC()
+l1.SetTextSize(0.035)
+l1.DrawLatex(0.70,0.52, "f_{b#bar{b}} = #frac{BR(X#rightarrowb#bar{b})}{BR(X#rightarrowjj)}")
+l1.SetTextSize(0.04)
+l1.DrawLatex(0.18,0.89, "qq/bb, f_{b#bar{b}}=0.5")
+l1.SetTextSize(0.04)
+l1.DrawLatex(0.18,0.43, "CMS Preliminary")
+l1.DrawLatex(0.18,0.35, "#intLdt = 5 fb^{-1}")
+l1.DrawLatex(0.19,0.30, "#sqrt{s} = 7 TeV")
+l1.DrawLatex(0.18,0.25, "|#eta| < 2.5, |#Delta#eta| < 1.3")
+l1.DrawLatex(0.18,0.20, "Wide Jets")
+l1.SetTextSize(0.055)
+l1.DrawLatex(0.73,0.84, "2 b-tags")
+
+c.SetLogy()
+c.SaveAs('CSVL_CSVM_TCHEL_2Tag_limit_exp_SplusB_WideJets_Zprime_fbb0.5.eps')
+
