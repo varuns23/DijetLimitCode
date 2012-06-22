@@ -195,5 +195,5 @@ l1.DrawLatex(0.50,0.80, "0, 1 and 2 b-tags")
 gPad.RedrawAxis();
 
 c.SetLogy()
-c.SaveAs('CSVL_Combined_limit_obsexp_SplusB_sys_WideJets_Zprime_fbb0.2.eps')
+c.SaveAs('CSVL_Combined_limit_obsexp_SplusB_sys_WideJets_Zprime_fbb0p2.eps')
 

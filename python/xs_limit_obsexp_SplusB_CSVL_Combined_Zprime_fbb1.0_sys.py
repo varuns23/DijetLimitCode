@@ -172,7 +172,7 @@ legend2.SetFillColor(0)
 legend2.SetFillStyle(0)
 legend2.SetTextFont(42)
 legend2.SetTextSize(0.03)
-legend2.AddEntry(graph_s8,"S8 (f_{b#bar{b}} #approx 1.0)","l")
+legend2.AddEntry(graph_s8,"S8_{b} (f_{b#bar{b}} #approx 1.0)","l")
 legend2.Draw()
 
 l1 = TLatex()
@@ -195,5 +195,5 @@ l1.DrawLatex(0.50,0.80, "0, 1 and 2 b-tags")
 gPad.RedrawAxis();
 
 c.SetLogy()
-c.SaveAs('CSVL_Combined_limit_obsexp_SplusB_sys_WideJets_Zprime_fbb1.0.eps')
+c.SaveAs('CSVL_Combined_limit_obsexp_SplusB_sys_WideJets_Zprime_fbb1p0.eps')
 

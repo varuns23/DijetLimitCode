@@ -188,7 +188,7 @@ legend2.SetFillStyle(0)
 legend2.SetTextFont(42)
 legend2.SetTextSize(0.03)
 legend2.AddEntry(graph_zprime,"Z' (f_{b#bar{b}} #approx 0.2)","l")
-legend2.AddEntry(graph_s8,"S8 (f_{b#bar{b}} #approx 1.0)","l")
+legend2.AddEntry(graph_s8,"S8_{b} (f_{b#bar{b}} #approx 1.0)","l")
 legend2.Draw()
 
 l1 = TLatex()
