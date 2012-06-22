@@ -169,11 +169,11 @@ int main(int argc, char* argv[])
   for(int i = 0; i<NPARS; ++i) { for(int j = 0; j<NPARS; ++j) COV_MATRIX[i][j]=0.; }
 
   // input file names
-  INPUTFILES.push_back("Data_and_ResonanceShapes/Final__histograms_CSVL_0Tag_WideJets.root");
+  INPUTFILES.push_back("/uscms/home/ferencek/MyAnalysis/MyAnalyzer/test/LimitCode/Data_and_ResonanceShapes/Final__histograms_CSVL_0Tag_WideJets.root");
 
   // setup the signal histogram
-  string filename1 = "Data_and_ResonanceShapes/Resonance_Shapes_WideJets_bb.root";
-  string filename2 = "Data_and_ResonanceShapes/Resonance_Shapes_WideJets_" + LFRS + ".root";
+  string filename1 = "/uscms/home/ferencek/MyAnalysis/MyAnalyzer/test/LimitCode/Data_and_ResonanceShapes/Resonance_Shapes_WideJets_bb.root";
+  string filename2 = "/uscms/home/ferencek/MyAnalysis/MyAnalyzer/test/LimitCode/Data_and_ResonanceShapes/Resonance_Shapes_WideJets_" + LFRS + ".root";
 
   ostringstream histname1, histname2;
   histname1 << "h_bb_" << masspoint;
