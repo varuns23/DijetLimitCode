@@ -62,7 +62,7 @@ void Fitter::doFit(void)
 
   // do the fit
   minuit_.SetFCN(nll);
-  Double_t arglist[1] = {10000.0};
+  Double_t arglist[1] = {20000.0};
   Int_t err = 0;
   minuit_.mnexcm("MIGRAD",arglist,1,err);
 
@@ -84,7 +84,7 @@ void Fitter::doFit(double* emat, int ndim)
 
   // do the fit
   minuit_.SetFCN(nll);
-  Double_t arglist[1] = {10000.0};
+  Double_t arglist[1] = {20000.0};
   Int_t err = 0;
   minuit_.mnexcm("MIGRAD",arglist,1,err);
   minuit_.mnemat(emat, ndim);
