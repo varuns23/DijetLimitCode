@@ -26,13 +26,16 @@ using namespace std;
 ////////////////////////////////////////////////////////////////////////////////
 
 // number of pseudoexperiments
-const int NPES=0; // 100
+const int NPES=200; // 100
 
 // number of samples of nuisance parameters for Bayesian MC integration
-const int NSAMPLES=0; // 2000
+const int NSAMPLES=2000; // 2000
 
 // use a B-only fit for the background systematics
-const bool useBonlyFit = 0;
+const bool useBonlyFit = 1;
+
+// constrain S to be positive in the S+B fit
+const bool posS = 0;
 
 // alpha (1-alpha=confidence interval)
 const double ALPHA=0.05;
@@ -52,10 +55,10 @@ const int NPARS=26;  // TMinuit does not support more than 26 variable parameter
 const int NBKGPARS=4;
 const int POIINDEX=0; // which parameter is "of interest"
 const char* PAR_NAMES[NPARS]    = { "xs", "lumi", "jes", "jer", "eff 0", "eff 2",    "norm_0",      "p1_0",      "p2_0",       "p3_0",    "norm_1",      "p1_1",      "p2_1",       "p3_1",    "norm_2",      "p1_2",      "p2_2",       "p3_2", "n0_0", "n1_0", "n2_0", "n0_1", "n1_1", "n2_1", "n0_2", "n1_2" };
-      double PAR_GUESSES[NPARS] = {  0.1,  4976.,   1.0,   1.0,     0.5,     0.1, 2.28255e-01, 8.51130e+00, 5.42168e+00,  5.23767e-02, 1.41453e-01, 8.47691e+00, 4.97184e+00, -3.60922e-02, 4.11375e-03, 6.37762e+00, 5.58514e+00,  4.93530e-02,    10,      10,     10,     10,     10,     10,     10,     10 };
-const double PAR_MIN[NPARS]     = {  0.0,    0.0,   0.0,   0.0,     0.0,     0.0,       -9999,       -9999,       -9999,        -9999,       -9999,       -9999,       -9999,        -9999,       -9999,       -9999,       -9999,        -9999,     9,       9,      9,      9,      9,      9,      9,      9 };
+      double PAR_GUESSES[NPARS] = { 1E-5,  4976.,   1.0,   1.0,     0.5,     0.1, 2.28255e-01, 8.51130e+00, 5.42168e+00,  5.23767e-02, 1.41453e-01, 8.47691e+00, 4.97184e+00, -3.60922e-02, 4.11375e-03, 6.37762e+00, 5.58514e+00,  4.93530e-02,    10,      10,     10,     10,     10,     10,     10,     10 };
+      double PAR_MIN[NPARS]     = {    0,    0.0,   0.0,   0.0,     0.0,     0.0,       -9999,       -9999,       -9999,        -9999,       -9999,       -9999,       -9999,        -9999,       -9999,       -9999,       -9999,        -9999,     9,       9,      9,      9,      9,      9,      9,      9 };
 const double PAR_MAX[NPARS]     = { 1.E6,  6000.,   2.0,   2.0,     1.0,     1.0,        9999,        9999,        9999,         9999,        9999,        9999,        9999,         9999,        9999,        9999,        9999,         9999,    11,      11,     11,     11,     11,     11,     11,     11 };
-      double PAR_ERR[NPARS]     = { 0.01,   110.,  0.03,  0.10,    0.05,    0.01,      1e-02,        1e-01,       1e-01,        1e-02,      1e-02,        1e-01,       1e-01,        1e-02,      1e-03,        1e-01,       1e-01,        1e-02,     1,       1,      1,      1,      1,      1,      1,      1 };
+      double PAR_ERR[NPARS]     = { 1E-3,   110.,  0.03,  0.10,    0.05,    0.01,      1e-02,        1e-01,       1e-01,        1e-02,      1e-02,        1e-01,       1e-01,        1e-02,      1e-03,        1e-01,       1e-01,        1e-02,     1,       1,      1,      1,      1,      1,      1,      1 };
 const int PAR_TYPE[NPARS]       = {    1,      2,     2,     2,       2,       2,          0,            0,           0,            0,          0,            0,           0,            0,          0,            0,           0,            0,     3,       3,      3,      3,      3,      3,      3,      3 }; // 1,2 = signal (2 not used in the fit); 0,3 = background (3 not used in the fit)
 const int PAR_NUIS[NPARS]       = {    0,      1,     1,     1,       1,       1,          0,            0,           0,            0,          0,            0,           0,            0,          0,            0,           0,            0,     1,       1,      1,      1,      1,      1,      1,      1 }; // 1 = nuisance parameter, 0 = not varied (the POI is not a nuisance parameter)
 
@@ -347,6 +350,8 @@ int main(int argc, char* argv[])
 
   if(useBonlyFit) shift = 0;
 
+  if(!posS) PAR_MIN[POIINDEX] = -PAR_MAX[POIINDEX];
+
   // initialize the covariance matrix
   for(int i = 0; i<NPARS; ++i) { for(int j = 0; j<NPARS; ++j) COV_MATRIX[i][j]=0.; }
 
@@ -421,6 +426,7 @@ int main(int argc, char* argv[])
   for(int i=0; i<NPARS; i++) if(PAR_TYPE[i]>=2 || PAR_MIN[i]==PAR_MAX[i]) fit_data.fixParameter(i);
   if(useBonlyFit) { fit_data.doFit(); fit_data.fixParameter(POIINDEX); }
   fit_data.doFit(&COV_MATRIX[0][0], NPARS);
+  cout << "Data fit status: " << fit_data.getFitStatus() << endl;
   POIval = fit_data.getParameter(POIINDEX); // get the POI value for later use
   fit_data.fixParameter(POIINDEX); // a parameter needs to be fixed before its value can be changed
   fit_data.setParameter(POIINDEX, 0.0); // set the POI value to 0 to get the B component of the S+B fit (for calculating pulls and generating pseudo-data)
@@ -446,6 +452,7 @@ int main(int argc, char* argv[])
   eigenValues2.Sqrt();
   eigenVectors2 = eigen_data2.GetEigenVectors();
 
+  fit_data.setParLimits(POIINDEX, 0.0, PAR_MAX[POIINDEX]); // for posterior calculation, signal has to be positive
   TGraph* post_data=fit_data.calculatePosterior(NSAMPLES);
   post_data->Write("post_0");
 
@@ -478,6 +485,8 @@ int main(int argc, char* argv[])
     for(int i=0; i<NPARS; i++) if(PAR_TYPE[i]>=2 || PAR_MIN[i]==PAR_MAX[i]) fit.fixParameter(i);
     if(useBonlyFit) { fit.doFit(); fit.fixParameter(POIINDEX); }
     fit.doFit(&COV_MATRIX[0][0], NPARS);
+    string fitStatus = fit.getFitStatus();
+    if(fitStatus=="FAILED    ") continue; // skip this PE if the fit failed
     fit.fixParameter(POIINDEX); // a parameter needs to be fixed before its value can be changed
     fit.setParameter(POIINDEX, 0.0); // set the POI value to 0 to get the B component of the S+B fit (for calculating pulls and generating pseudo-data)
     fit.calcPull((string("pull_bkg")+pestr.str()).c_str())->Write();
@@ -510,6 +519,7 @@ int main(int argc, char* argv[])
     eigenValues2.Sqrt();
     eigenVectors2 = eigen2.GetEigenVectors();
 
+    fit.setParLimits(POIINDEX, 0.0, PAR_MAX[POIINDEX]); // for posterior calculation, signal has to be positive
     TGraph* post=fit.calculatePosterior(NSAMPLES);
     post->Write((string("post")+pestr.str()).c_str());
     if(fit.callLimitReached()) {
