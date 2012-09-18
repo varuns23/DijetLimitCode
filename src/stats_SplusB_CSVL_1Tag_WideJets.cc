@@ -32,7 +32,10 @@ const int NPES=0; // 100
 const int NSAMPLES=0; // 2000
 
 // use a B-only fit for the background systematics
-const bool useBonlyFit = 0;
+const bool useBonlyFit = 1;
+
+// constrain S to be positive in the S+B fit
+const bool posS = 0;
 
 // alpha (1-alpha=confidence interval)
 const double ALPHA=0.05;
@@ -188,6 +191,8 @@ int main(int argc, char* argv[])
 
   if(useBonlyFit) shift = 0;
 
+  if(!posS) PAR_MIN[POIINDEX] = -PAR_MAX[POIINDEX];
+
   // initialize the covariance matrix
   for(int i = 0; i<NPARS; ++i) { for(int j = 0; j<NPARS; ++j) COV_MATRIX[i][j]=0.; }
 
@@ -254,6 +259,7 @@ int main(int argc, char* argv[])
   for(int i=0; i<NPARS; i++) if(PAR_TYPE[i]>=2 || PAR_MIN[i]==PAR_MAX[i]) fit_data.fixParameter(i);
   if(useBonlyFit) { fit_data.doFit(); fit_data.fixParameter(POIINDEX); }
   fit_data.doFit(&COV_MATRIX[0][0], NPARS);
+  cout << "Data fit status: " << fit_data.getFitStatus() << endl;
   POIval = fit_data.getParameter(POIINDEX); // get the POI value for later use
   fit_data.fixParameter(POIINDEX); // a parameter needs to be fixed before its value can be changed
   fit_data.setParameter(POIINDEX, 0.0); // set the POI value to 0 to get the B component of the S+B fit (for calculating pulls and generating pseudo-data)
@@ -271,6 +277,7 @@ int main(int argc, char* argv[])
   //eigenValues.Print();
   eigenVectors = eigen_data.GetEigenVectors();
 
+  fit_data.setParLimits(POIINDEX, 0.0, PAR_MAX[POIINDEX]); // for posterior calculation, signal has to be positive
   TGraph* post_data=fit_data.calculatePosterior(NSAMPLES);
   post_data->Write("post_0");
 
@@ -303,6 +310,8 @@ int main(int argc, char* argv[])
     for(int i=0; i<NPARS; i++) if(PAR_TYPE[i]>=2 || PAR_MIN[i]==PAR_MAX[i]) fit.fixParameter(i);
     if(useBonlyFit) { fit.doFit(); fit.fixParameter(POIINDEX); }
     fit.doFit(&COV_MATRIX[0][0], NPARS);
+    string fitStatus = fit.getFitStatus();
+    if(fitStatus=="FAILED    ") continue; // skip this PE if the fit failed
     fit.fixParameter(POIINDEX); // a parameter needs to be fixed before its value can be changed
     fit.setParameter(POIINDEX, 0.0); // set the POI value to 0 to get the B component of the S+B fit (for calculating pulls and generating pseudo-data)
     fit.calcPull((string("pull_bkg")+pestr.str()).c_str())->Write();
@@ -319,6 +328,7 @@ int main(int argc, char* argv[])
     eigenValues.Sqrt();
     eigenVectors = eigen.GetEigenVectors();
 
+    fit.setParLimits(POIINDEX, 0.0, PAR_MAX[POIINDEX]); // for posterior calculation, signal has to be positive
     TGraph* post=fit.calculatePosterior(NSAMPLES);
     post->Write((string("post")+pestr.str()).c_str());
     if(fit.callLimitReached()) {
