@@ -61,10 +61,10 @@ const int NPARS=13;
 const int NBKGPARS=4;
 const int POIINDEX=0; // which parameter is "of interest"
 const char* PAR_NAMES[NPARS]    = { "xs", "lumi", "jes", "jer", "eff",  "bkg norm",        "p1",        "p2",         "p3", "n0", "n1", "n2", "n3" };
-      double PAR_GUESSES[NPARS] = {  0.1,  4976.,   1.0,   1.0,   0.1, 4.11375e-03, 6.37762e+00, 5.58514e+00,  4.93530e-02,   10,   10,   10,   10 };
-const double PAR_MIN[NPARS]     = {  0.0,    0.0,   0.0,   0.0,   0.0,       -9999,       -9999,       -9999,        -9999,    9,    9,    9,    9 };
+      double PAR_GUESSES[NPARS] = { 1E-5,  4976.,   1.0,   1.0,   0.1, 4.11375e-03, 6.37762e+00, 5.58514e+00,  4.93530e-02,   10,   10,   10,   10 };
+      double PAR_MIN[NPARS]     = {    0,    0.0,   0.0,   0.0,   0.0,       -9999,       -9999,       -9999,        -9999,    9,    9,    9,    9 };
 const double PAR_MAX[NPARS]     = { 1.E6,  6000.,   2.0,   2.0,   1.0,        9999,        9999,        9999,         9999,   11,   11,   11,   11 };
-      double PAR_ERR[NPARS]     = { 0.01,   110.,  0.03,  0.10,  0.01,      1e-03,        1e-01,       1e-01,        1e-02,    1,    1,    1,    1 };
+      double PAR_ERR[NPARS]     = { 1E-3,   110.,  0.03,  0.10,  0.01,      1e-03,        1e-01,       1e-01,        1e-02,    1,    1,    1,    1 };
 const int PAR_TYPE[NPARS]       = {    1,      2,     2,     2,     2,          0,            0,           0,            0,    3,    3,    3,    3 }; // 1,2 = signal (2 not used in the fit); 0,3 = background (3 not used in the fit)
 const int PAR_NUIS[NPARS]       = {    0,      1,     1,     1,     1,          0,            0,           0,            0,    1,    1,    1,    1 }; // 1 = nuisance parameter, 0 = not varied (the POI is not a nuisance parameter)
 
