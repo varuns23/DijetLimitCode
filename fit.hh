@@ -26,6 +26,7 @@ public:
   // getters
   bool callLimitReached() { return callLimitReached_; }
   const char* getFitStatus() { return minuit_.fCstatu.Data(); }
+  int getNCalls() { return minuit_.fNfcn; }
 
   // parameter manipulation
   int defineParameter(int parno, const char* name, double value, double error, double lo, double hi, bool isNuisance);
