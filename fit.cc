@@ -107,7 +107,7 @@ TH1D* Fitter::calcPull(const char* name)
     double binwidth=data_->GetBinWidth(bin);
     double N=data_->GetBinContent(bin)*binwidth;
     double l = 0.5*TMath::ChisquareQuantile(alpha/2,2*N);
-    double h = (N==0) ? ( 0.5*TMath::ChisquareQuantile(1-alpha,2*(N+1)) ) : ( 0.5*TMath::ChisquareQuantile(1-alpha/2,2*(N+1)) );
+    double h = 0.5*TMath::ChisquareQuantile(1-alpha/2,2*(N+1));
     double el = N-l;
     double eh = h-N;
 
