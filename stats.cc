@@ -67,13 +67,13 @@ const char* PAR_NAMES[NPARS]    = { "xs", "lumi", "jes", "jer",        "p0",    
 const double PAR_MAX[NPARS]     = {  1E6,  6000.,   2.0,   2.0,        9999,        9999,        9999,         9999,  1.5,  1.5,  1.5,  1.5 };
       double PAR_ERR[NPARS]     = { 1E-3,   110.,  0.03,  0.10,      1e-02,        1e-01,       1e-01,        1e-02,    1,    1,    1,    1 };
 const int PAR_TYPE[NPARS]       = {    1,      2,     2,     2,          0,            0,           0,            0,    3,    3,    3,    3 }; // // 1,2 = signal (2 not used in the fit); 0,3 = background (3 not used in the fit)
-//const int PAR_NUIS[NPARS]       = {    0,      1,     1,     1,          0,            0,           0,            0,    4,    4,    4,    4 }; // 0 = not varied, >=1 = nuisance parameters with different priors (1 = Lognormal, 2 = Gaussian, 3 = Gamma, >=4 = Uniform)
+const int PAR_NUIS[NPARS]       = {    0,      1,     1,     1,          0,            0,           0,            0,    4,    4,    4,    4 }; // 0 = not varied, >=1 = nuisance parameters with different priors (1 = Lognormal, 2 = Gaussian, 3 = Gamma, >=4 = Uniform)
 
 //const int PAR_NUIS[NPARS]       = {    0,      1,     1,     1,          0,            0,           0,            0,    4,    4,    4,    4 }; // all (same as above)
 //const int PAR_NUIS[NPARS]       = {    0,      1,     0,     0,          0,            0,           0,            0,    0,    0,    0,    0 }; // lumi only
 //const int PAR_NUIS[NPARS]       = {    0,      0,     1,     0,          0,            0,           0,            0,    0,    0,    0,    0 }; // jes only
 //const int PAR_NUIS[NPARS]       = {    0,      0,     0,     1,          0,            0,           0,            0,    0,    0,    0,    0 }; // jer only
-const int PAR_NUIS[NPARS]       = {    0,      0,     0,     0,          0,            0,           0,            0,    4,    4,    4,    4 }; // background only
+//const int PAR_NUIS[NPARS]       = {    0,      0,     0,     0,          0,            0,           0,            0,    4,    4,    4,    4 }; // background only
 
 //
 // End of User Section 1
