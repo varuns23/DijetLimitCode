@@ -13,7 +13,7 @@ TH1D* getData(const std::vector<std::string>& filenames, const char* histname, i
   TH1D* hist=new TH1D("normalized_data", "normalized data", nbins, bins);
 
   unsigned nFiles = filenames.size();
-  
+
   TFile *files[nFiles];
   TH1D *hists[nFiles];
 
@@ -25,49 +25,61 @@ TH1D* getData(const std::vector<std::string>& filenames, const char* histname, i
   }
 
   // normalize the data in the histogram
-  for(int i=1; i<=hist->GetNbinsX(); ++i) {
-   
-    if(hist->GetXaxis()->GetBinUpEdge(i)<=5890.)
-    {
-      double offset = 0.;
-      int bin_min = hists[0]->GetXaxis()->FindBin(hist->GetXaxis()->GetBinLowEdge(i)-offset+0.5);
-      int bin_max = hists[0]->GetXaxis()->FindBin(hist->GetXaxis()->GetBinUpEdge(i)-offset-0.5);
-      double val=hists[0]->Integral(bin_min,bin_max);
-      double err=Fitter::histError(val);
-      double width=hist->GetBinWidth(i);
-      hist->SetBinContent(i, val/width);
-      hist->SetBinError(i, err/width);
-    }
-    else if(hist->GetXaxis()->GetBinUpEdge(i)>5890. && hist->GetXaxis()->GetBinUpEdge(i)<=10890. && nFiles>1)
-    {
-      double offset = 5000.;
-      int bin_min = hists[1]->GetXaxis()->FindBin(hist->GetXaxis()->GetBinLowEdge(i)-offset+0.5);
-      int bin_max = hists[1]->GetXaxis()->FindBin(hist->GetXaxis()->GetBinUpEdge(i)-offset-0.5);
-      double val=hists[1]->Integral(bin_min,bin_max);
-      double err=Fitter::histError(val);
-      double width=hist->GetBinWidth(i);
-      hist->SetBinContent(i, val/width);
-      hist->SetBinError(i, err/width);
-    }
-    else if(hist->GetXaxis()->GetBinUpEdge(i)>10890. && nFiles>2)
-    {
-      double offset = 10000.;
-      int bin_min = hists[2]->GetXaxis()->FindBin(hist->GetXaxis()->GetBinLowEdge(i)-offset+0.5);
-      int bin_max = hists[2]->GetXaxis()->FindBin(hist->GetXaxis()->GetBinUpEdge(i)-offset-0.5);
-      double val=hists[2]->Integral(bin_min,bin_max);
-      double err=Fitter::histError(val);
-      double width=hist->GetBinWidth(i);
-      hist->SetBinContent(i, val/width);
-      hist->SetBinError(i, err/width);
-    }
+  for(int i=1; i<=hist->GetNbinsX(); ++i)
+  {
+
+    int bin_min = hists[0]->GetXaxis()->FindBin(hist->GetXaxis()->GetBinLowEdge(i)+0.5);
+    int bin_max = hists[0]->GetXaxis()->FindBin(hist->GetXaxis()->GetBinUpEdge(i)-0.5);
+    double val=hists[0]->Integral(bin_min,bin_max);
+    double err=Fitter::histError(val);
+    double width=hist->GetBinWidth(i);
+    hist->SetBinContent(i, val/width);
+    hist->SetBinError(i, err/width);
+
+    // for simultaneous fit in 3 distribution (used in di-b-jet analysis, currently commented out)
+    //if(hist->GetXaxis()->GetBinUpEdge(i)<=5890.)
+    //{
+    //  double offset = 0.;
+    //  int bin_min = hists[0]->GetXaxis()->FindBin(hist->GetXaxis()->GetBinLowEdge(i)-offset+0.5);
+    //  int bin_max = hists[0]->GetXaxis()->FindBin(hist->GetXaxis()->GetBinUpEdge(i)-offset-0.5);
+    //  double val=hists[0]->Integral(bin_min,bin_max);
+    //  double err=Fitter::histError(val);
+    //  double width=hist->GetBinWidth(i);
+    //  hist->SetBinContent(i, val/width);
+    //  hist->SetBinError(i, err/width);
+    //}
+    //else if(hist->GetXaxis()->GetBinUpEdge(i)>5890. && hist->GetXaxis()->GetBinUpEdge(i)<=10890. && nFiles>1)
+    //{
+    //  double offset = 5000.;
+    //  int bin_min = hists[1]->GetXaxis()->FindBin(hist->GetXaxis()->GetBinLowEdge(i)-offset+0.5);
+    //  int bin_max = hists[1]->GetXaxis()->FindBin(hist->GetXaxis()->GetBinUpEdge(i)-offset-0.5);
+    //  double val=hists[1]->Integral(bin_min,bin_max);
+    //  double err=Fitter::histError(val);
+    //  double width=hist->GetBinWidth(i);
+    //  hist->SetBinContent(i, val/width);
+    //  hist->SetBinError(i, err/width);
+    //}
+    //else if(hist->GetXaxis()->GetBinUpEdge(i)>10890. && nFiles>2)
+    //{
+    //  double offset = 10000.;
+    //  int bin_min = hists[2]->GetXaxis()->FindBin(hist->GetXaxis()->GetBinLowEdge(i)-offset+0.5);
+    //  int bin_max = hists[2]->GetXaxis()->FindBin(hist->GetXaxis()->GetBinUpEdge(i)-offset-0.5);
+    //  double val=hists[2]->Integral(bin_min,bin_max);
+    //  double err=Fitter::histError(val);
+    //  double width=hist->GetBinWidth(i);
+    //  hist->SetBinContent(i, val/width);
+    //  hist->SetBinError(i, err/width);
+    //}
   }
 
   // do some checks
-  if(hist->GetBinContent(0)>0.0 || hist->GetBinContent(hist->GetNbinsX()+1)>0.0) {
+  if(hist->GetBinContent(0)>0.0 || hist->GetBinContent(hist->GetNbinsX()+1)>0.0)
+  {
     std::cerr << "There is an underflow/overflow.  This should be fixed.  Please rebin!" << std::endl;
     assert(0);
   }
-  if(hist->GetBinContent(1)<=0.0) {
+  if(hist->GetBinContent(1)<=0.0)
+  {
     std::cerr << "The first data bin is empty. This will give incorrect results.  Please rebin!" << std::endl;
     assert(0);
   }
@@ -85,18 +97,19 @@ TH1D* getSignalCDF(const char* filename1, const char* histname1, const char* fil
 {
   TH1D* h_pdf=new TH1D("h_pdf", "Resonance Shape", 14000, 0, 14000);
   TH1D* h_cdf=new TH1D(("h_cdf"+postfix).c_str(), "Resonance Shape CDF", 14000, 0, 14000);
-   
+
   TFile* histfile1=new TFile(filename1);
   TFile* histfile2=new TFile(filename2);
 
   TH1D* hist1=(TH1D*)histfile1->Get(histname1);
   TH1D* hist2=(TH1D*)histfile2->Get(histname2);
-    
+
   hist1->Scale(eff_h*BR);
   hist2->Scale(eff_l*(1-BR));
-  hist1->Add(hist2);
-  
-  for(int i=1; i<=hist1->GetNbinsX(); i++){
+  hist1->Add(hist2); // this adds together two resonance shapes with appropriate branching fractions and efficiencies
+
+  for(int i=1; i<=hist1->GetNbinsX(); i++)
+  {
 
     int bin_min = h_pdf->GetXaxis()->FindBin(hist1->GetXaxis()->GetBinLowEdge(i)+0.5);
     int bin_max = h_pdf->GetXaxis()->FindBin(hist1->GetXaxis()->GetBinUpEdge(i)-0.5);
@@ -107,10 +120,11 @@ TH1D* getSignalCDF(const char* filename1, const char* histname1, const char* fil
     }
   }
 
-  h_pdf->Scale(1./h_pdf->Integral());
-  
-  for(int i=1; i<=h_cdf->GetNbinsX(); i++){
+  h_pdf->Scale(1./h_pdf->Integral()); // normalize final PDF
 
+  // produce CDF from the normalized PDF
+  for(int i=1; i<=h_cdf->GetNbinsX(); i++)
+  {
     int bin_min = h_pdf->GetXaxis()->FindBin(h_cdf->GetXaxis()->GetBinLowEdge(i)+0.5);
     int bin_max = h_pdf->GetXaxis()->FindBin(h_cdf->GetXaxis()->GetBinUpEdge(i)-0.5);
 
