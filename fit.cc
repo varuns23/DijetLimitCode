@@ -213,7 +213,7 @@ double* Fitter::getParameters(void)
   return parameters_;
 }
 
-int Fitter::defineParameter(int parno, const char *name, double value, double error, double lo, double hi, bool isNuisance)
+int Fitter::defineParameter(int parno, const char *name, double value, double error, double lo, double hi, int isNuisance)
 {
   parameterIsNuisance_[parno]=isNuisance;
   return minuit_.DefineParameter(parno, name, value, error, lo, hi);
@@ -303,10 +303,10 @@ double Fitter::evalNLL(void)
 double Fitter::histError(double val)
 {
   const double alpha = 1 - 0.6827;
- 
-  if(val<25. && val>0.) return (TMath::ChisquareQuantile(1-alpha/2,2*(val+1))-TMath::ChisquareQuantile(alpha/2,2*val))/4.0;
-  else if(val==0.) return TMath::ChisquareQuantile(1-alpha,2*(val+1))/2.0;
-  else return sqrt(val);
+
+  if(val<25. && val>0.) return (0.5*TMath::ChisquareQuantile(1-alpha/2,2*(val+1))-0.5*TMath::ChisquareQuantile(alpha/2,2*val))/2.0; // this is not exactly correct since it symmetrizes what are otherwise asymmetric error bars
+  else if(val==0.) return 0.5*TMath::ChisquareQuantile(1-alpha/2,2*(val+1)); // special case of 0 events with one-sided error bar
+  else return sqrt(val); // for val>25 error bars with correct coverage are essentially symmetric
 }
 
 void Fitter::nll(int &, double *, double &f, double *par, int)
@@ -415,10 +415,10 @@ double Fitter::computeLikelihoodWithSystematics(double poiVal, double nllNormali
     return TMath::Exp(-f+nllNormalization);
   }
 
-  // setup lognormals
-  std::map<int, RandomLognormal*> lognorms;
-  for(std::map<int, bool>::const_iterator it=parameterIsNuisance_.begin(); it!=parameterIsNuisance_.end(); ++it) {
-    if(it->second) {
+  // setup nuisance parameter priors
+  std::map<int, RandomPrior*> priors;
+  for(std::map<int, int>::const_iterator it=parameterIsNuisance_.begin(); it!=parameterIsNuisance_.end(); ++it) {
+    if(it->second>0) {
       assert(it->first!=poiIndex_);
       double parval, parerr;
       double lolim, uplim;
@@ -426,19 +426,19 @@ double Fitter::computeLikelihoodWithSystematics(double poiVal, double nllNormali
       getParLimits(it->first, lolim, uplim);
       if(lolim<parval-5*parerr) lolim=parval-5*parerr;
       if(uplim>parval+5*parerr) uplim=parval+5*parerr;
-      lognorms[it->first]=new RandomLognormal(parval, parerr, lolim, uplim);
+      priors[it->first]=new RandomPrior(it->second, parval, parerr, lolim, uplim);
     }
   }
 
   // calculate average likelihood value over nuisance parameters
   double total=0.0;
   for(int sample=0; sample<=nSamples_; sample++) {
-    for(std::map<int, RandomLognormal*>::const_iterator it=lognorms.begin(); it!=lognorms.end(); ++it)
+    for(std::map<int, RandomPrior*>::const_iterator it=priors.begin(); it!=priors.end(); ++it)
       pars[it->first]=it->second->getRandom();
     nll(a,0,f,pars,0);
     double like=TMath::Exp(-f+nllNormalization);
 
-    //if(like>10) {
+    //if(like>10) { // for debugging
     //  int nPars=minuit_.GetNumPars();
     //  std::cout << "sample=" << sample << std::endl;
     //  for(int i=0; i<nPars; i++) {
@@ -451,8 +451,8 @@ double Fitter::computeLikelihoodWithSystematics(double poiVal, double nllNormali
     total+=like;
   }
 
-  // remove lognormals
-  for(std::map<int, RandomLognormal*>::const_iterator it=lognorms.begin(); it!=lognorms.end(); ++it) delete it->second;
+  // remove nuisance parameter priors
+  for(std::map<int, RandomPrior*>::const_iterator it=priors.begin(); it!=priors.end(); ++it) delete it->second;
 
   return total/nSamples_;
 }
@@ -555,10 +555,10 @@ std::pair<int, int> Fitter::calculateCLs_(double poiVal, std::vector<double>& CL
   double f;
   double *pars=getParameters();
 
-  // setup lognormals
-  std::map<int, RandomLognormal*> lognorms;
-  for(std::map<int, bool>::const_iterator it=parameterIsNuisance_.begin(); it!=parameterIsNuisance_.end(); ++it) {
-    if(it->second) {
+  // setup nuisance parameter priors
+  std::map<int, RandomPrior*> priors;
+  for(std::map<int, int>::const_iterator it=parameterIsNuisance_.begin(); it!=parameterIsNuisance_.end(); ++it) {
+    if(it->second>0) {
       assert(it->first!=poiIndex_);
       double parval, parerr;
       double lolim, uplim;
@@ -566,7 +566,7 @@ std::pair<int, int> Fitter::calculateCLs_(double poiVal, std::vector<double>& CL
       getParLimits(it->first, lolim, uplim);
       if(lolim<parval-5*parerr) lolim=parval-5*parerr;
       if(uplim>parval+5*parerr) uplim=parval+5*parerr;
-      lognorms[it->first]=new RandomLognormal(parval, parerr, lolim, uplim);
+      priors[it->first]=new RandomPrior(it->second, parval, parerr, lolim, uplim);
     }
   }
 
@@ -578,7 +578,7 @@ std::pair<int, int> Fitter::calculateCLs_(double poiVal, std::vector<double>& CL
     TH1D* CLSB_pdata;
     TH1D* CLB_pdata;
     if(i>0) {
-      for(std::map<int, RandomLognormal*>::const_iterator it=lognorms.begin(); it!=lognorms.end(); ++it)
+      for(std::map<int, RandomPrior*>::const_iterator it=priors.begin(); it!=priors.end(); ++it)
 	pars[it->first]=it->second->getRandom();
 
       pars[poiIndex_]=poiVal;
@@ -618,8 +618,8 @@ std::pair<int, int> Fitter::calculateCLs_(double poiVal, std::vector<double>& CL
     }
   }
 
-  // remove lognormals
-  for(std::map<int, RandomLognormal*>::const_iterator it=lognorms.begin(); it!=lognorms.end(); ++it) delete it->second;
+  // remove nuisance parameter priors
+  for(std::map<int, RandomPrior*>::const_iterator it=priors.begin(); it!=priors.end(); ++it) delete it->second;
 
   // set the data back
   data_=theData;

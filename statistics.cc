@@ -8,7 +8,7 @@
 #include <TH1D.h>
 #include <TF1.h>
 
-int RandomLognormal::counter_=0;
+int RandomPrior::counter_=0;
 
 std::pair<double, double> evaluateInterval(TGraph* posterior, double alpha, double leftsidetail)
 {
@@ -97,37 +97,75 @@ double lognormal(double *x, double *par)
   double k=par[1]/par[0]+1.;
   double s=TMath::Log(k);
   return TMath::LogNormal(x[0], s, 0.0, m0);
+}
+
+double gaussian(double *x, double *par)
+{
+  if(par[1]<0.0) {
+    std::cout << "par[1] = " << par[1] << std::endl;
+    assert(0);
   }
 
-RandomLognormal::RandomLognormal(double median, double variance)
-{
-  double min = std::max(0.0, median-5.0*variance);
-  double max = (median+5.0*variance);
+  double m0=par[0];
+  double s=par[1];
+  return TMath::Gaus(x[0],m0,s,kTRUE);
+}
 
+double gamma(double *x, double *par)
+{
+  if(par[0]<0.0) {
+    std::cout << "par[0] = " << par[0] << std::endl;
+    assert(0);
+  }
+  if(par[1]<0.0) {
+    std::cout << "par[1] = " << par[1] << std::endl;
+    assert(0);
+  }
+
+  double s=par[0]*par[0]/par[1]/par[1]+1.;
+  double tau = par[0]/par[1]/par[1];
+  return TMath::GammaDist(x[0], s, 0.0, 1./tau);
+}
+
+RandomPrior::RandomPrior(int priorType, double median, double variance, double min, double max)
+{
   // create function
   std::ostringstream oss;
-  oss << "_Random_Lognormal__lognormfcn_" << (counter_++);
-  lognormfcn_ = new TF1(oss.str().c_str(), lognormal, min, max, 2);
-  lognormfcn_->SetParameter(0, median);
-  lognormfcn_->SetParameter(1, variance);
+  if(priorType==1) // Lognormal
+  {
+    oss << "_Random_Lognormal__priorfcn_" << (counter_++);
+    priorfcn_ = new TF1(oss.str().c_str(), lognormal, (min<0. ? 0. : min), max, 2);
+    priorfcn_->SetParameter(0, median);
+    priorfcn_->SetParameter(1, variance);
+  }
+  else if(priorType==2) // Gaussian
+  {
+    oss << "_Random_Gaussian__priorfcn_" << (counter_++);
+    priorfcn_ = new TF1(oss.str().c_str(), gaussian, min, max, 2);
+    priorfcn_->SetParameter(0, median);
+    priorfcn_->SetParameter(1, variance);
+  }
+  else if(priorType==3) // Gamma
+  {
+    oss << "_Random_Gamma__priorfcn_" << (counter_++);
+    priorfcn_ = new TF1(oss.str().c_str(), gamma, (min<0. ? 0. : min), max, 2);
+    priorfcn_->SetParameter(0, median);
+    priorfcn_->SetParameter(1, variance);
+  }
+  else // Uniform
+  {
+    oss << "_Random_Uniform__priorfcn_" << (counter_++);
+    priorfcn_ = new TF1(oss.str().c_str(), "pol0", min, max);
+    priorfcn_->SetParameter(0, 1.);
+  }
 }
 
-RandomLognormal::RandomLognormal(double median, double variance, double min, double max)
+RandomPrior::~RandomPrior()
 {
-  // create function
-  std::ostringstream oss;
-  oss << "_Random_Lognormal__lognormfcn_" << (counter_++);
-  lognormfcn_ = new TF1(oss.str().c_str(), lognormal, min, max, 2);
-  lognormfcn_->SetParameter(0, median);
-  lognormfcn_->SetParameter(1, variance);
+  delete priorfcn_;
 }
 
-RandomLognormal::~RandomLognormal()
+double RandomPrior::getRandom(void) const
 {
-  delete lognormfcn_;
-}
-
-double RandomLognormal::getRandom(void) const
-{
-  return lognormfcn_->GetRandom();
+  return priorfcn_->GetRandom();
 }

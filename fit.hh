@@ -29,7 +29,7 @@ public:
   int getNCalls() { return minuit_.fNfcn; }
 
   // parameter manipulation
-  int defineParameter(int parno, const char* name, double value, double error, double lo, double hi, bool isNuisance);
+  int defineParameter(int parno, const char* name, double value, double error, double lo, double hi, int isNuisance);
   int setParameter(int parno, double value);
   int setParLimits(int parno, double loLimit, double hiLimit);
   int fixParameter(int parno) { return minuit_.FixParameter(parno); }
@@ -83,7 +83,7 @@ private:
   TH1D* data_;
   int printlevel_;
   int strategy_;
-  std::map<int, bool> parameterIsNuisance_;
+  std::map<int, int> parameterIsNuisance_;
   double *parameters_;
   int poiIndex_;
   
