@@ -28,6 +28,7 @@ Fitter::Fitter()
   poiIndex_=-1;
   callLimitReached_=false;
   poiBestFit_ = 0;
+  poiUserError_ = 0;
 }
 
 Fitter::Fitter(TH1D* data, integral_ptr_t functionIntegral)
@@ -42,6 +43,7 @@ Fitter::Fitter(TH1D* data, integral_ptr_t functionIntegral)
   poiIndex_=-1;
   callLimitReached_=false;
   poiBestFit_ = 0;
+  poiUserError_ = 0;
 }
 
 Fitter::~Fitter()
@@ -218,6 +220,8 @@ double* Fitter::getParameters(void)
 int Fitter::defineParameter(int parno, const char *name, double value, double error, double lo, double hi, int isNuisance)
 {
   parameterIsNuisance_[parno]=isNuisance;
+  if(poiIndex_>=0 && parno==poiIndex_)
+    if(poiUserError_==0.) poiUserError_=error;
   return minuit_.DefineParameter(parno, name, value, error, lo, hi);
 }
 
@@ -400,13 +404,14 @@ void Fitter::evaluateForPosterior(double lo, double mid, double hi, double nllNo
     }
 
   // for debugging
-  //std::cout << "lo, mid, high: " << lo << ", " << mid << ", " << hi << std::endl
+  //std::cout << "nCalls: " << nCalls_ << std::endl
+  //          << "lo, mid, high: " << lo << ", " << mid << ", " << hi << std::endl
   //          << "loval, midval, hival: " << loVal << ", " << midVal << ", " << hiVal << std::endl
   //          << "maximumValX, maximumVal: " << maximumValX << ", " << maximumVal << std::endl << std::endl;
 
   if(fabs(loVal-midVal)>0.05*maximumVal || fabs(hiVal-midVal)>0.05*maximumVal) {
-    if(fabs(lo-mid)/mid>0.01 && fabs(lo-mid)/poiBestFit_>0.01) evaluateForPosterior(lo, 0.5*(lo+mid), mid, nllNormalization, fcnEval_);
-    if(fabs(hi-mid)/hi>0.01 && fabs(hi-mid)/poiBestFit_>0.01) evaluateForPosterior(mid, 0.5*(mid+hi), hi, nllNormalization, fcnEval_);
+    if(fabs(hi-mid)/hi>0.01 && fabs(hi-mid)/poiBestFit_>0.01 && fabs(hi-mid)>poiUserError_) evaluateForPosterior(mid, 0.5*(mid+hi), hi, nllNormalization, fcnEval_); // imortant to go to the mid-high range first to get a nice falling posteriror tail in case the number of calls limit is reached
+    if(fabs(lo-mid)/mid>0.01 && fabs(lo-mid)/poiBestFit_>0.01 && fabs(lo-mid)>poiUserError_) evaluateForPosterior(lo, 0.5*(lo+mid), mid, nllNormalization, fcnEval_);
   }
 
   return;

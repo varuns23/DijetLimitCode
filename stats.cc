@@ -32,10 +32,10 @@ using namespace std;
 ////////////////////////////////////////////////////////////////////////////////
 
 // number of pseudoexperiments (when greater than 0, expected limit with +/- 1 and 2 sigma bands is calculated)
-const int NPES=0; // 200 (the more pseudo-experiments, the better. However, 200 is a reasonable choice)
+const int NPES=20; // 200 (the more pseudo-experiments, the better. However, 200 is a reasonable choice)
 
 // number of samples of nuisance parameters for Bayesian MC integration (when greater than 0, systematic uncertanties are included in the limit calculation)
-const int NSAMPLES=3000; // 3000 (larger value is better but also slows down the code. 3000 is a reasonable compromise between the speed and precision)
+const int NSAMPLES=4000; // 4000 (larger value is better but it also slows down the code. 4000 is a reasonable compromise between the speed and precision)
 
 // alpha (1-alpha=confidence interval)
 const double ALPHA=0.05;
@@ -63,9 +63,9 @@ const int NBKGPARS=4;
 const int POIINDEX=0; // which parameter is "of interest"
 const char* PAR_NAMES[NPARS]    = { "xs", "lumi",  "jes", "jer",        "p0",        "p1",        "p2",         "p3", "n0", "n1", "n2", "n3" };
       double PAR_GUESSES[NPARS] = { 1E-5,  4976.,    1.0,   1.0, 3.27713e-01, 8.33753e+00, 5.37123e+00,  4.05975e-02,    0,    0,    0,    0 };
-      double PAR_MIN[NPARS]     = {    0,    0.0,    0.0,   0.0,       -9999,       -9999,       -9999,        -9999, -1.5, -1.5, -1.5, -1.5 };
-const double PAR_MAX[NPARS]     = {  1E6,  6000.,    2.0,   2.0,        9999,        9999,        9999,         9999,  1.5,  1.5,  1.5,  1.5 };
-      double PAR_ERR[NPARS]     = { 1E-3,   110., 0.0125,  0.10,      1e-02,        1e-01,       1e-01,        1e-02,    1,    1,    1,    1 };
+      double PAR_MIN[NPARS]     = {    0,    0.0,    0.0,   0.0,       -9999,       -9999,       -9999,        -9999,   -5,   -5,   -5,   -5 };
+const double PAR_MAX[NPARS]     = {  1E2,  6000.,    2.0,   2.0,        9999,        9999,        9999,         9999,    5,    5,    5,    5 };
+      double PAR_ERR[NPARS]     = { 1E-6,   110., 0.0125,  0.10,      1e-02,        1e-01,       1e-01,        1e-02,    1,    1,    1,    1 };
 const int PAR_TYPE[NPARS]       = {    1,      2,      2,     2,          0,            0,           0,            0,    3,    3,    3,    3 }; // // 1,2 = signal (2 not used in the fit); 0,3 = background (3 not used in the fit)
 const int PAR_NUIS[NPARS]       = {    0,      1,      1,     1,          0,            0,           0,            0,    4,    4,    4,    4 }; // 0 = not varied, >=1 = nuisance parameters with different priors (1 = Lognormal, 2 = Gaussian, 3 = Gamma, >=4 = Uniform)
 
@@ -338,12 +338,7 @@ int main(int argc, char* argv[])
     fit.setParLimits(POIINDEX, 0.0, PAR_MAX[POIINDEX]); // for posterior calculation, signal has to be positive
     TGraph* post=fit.calculatePosterior(NSAMPLES);
     post->Write((string("post")+pestr.str()).c_str());
-    if(fit.callLimitReached()) {
-      cout << "************************************************************" << endl
-           << "*** Call limit reached. Skipping this pseudo-experiment. ***" << endl
-           << "************************************************************" << endl;
-      continue;
-    }
+    cout << "Call limit reached in pe=" << pe << ": " << (fit.callLimitReached() ? "True" : "False") << endl;
 
     // evaluate the limit
     pair<double, double> bounds=evaluateInterval(post, ALPHA, LEFTSIDETAIL);

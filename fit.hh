@@ -91,6 +91,7 @@ private:
   int nCalls_;
   bool callLimitReached_;
   double poiBestFit_;
+  double poiUserError_;
 
   void evaluateForPosterior(double lo, double mid, double hi, double nllNormalization, std::map<double, double>& fcnEval_);
   double computeLikelihoodWithSystematics(double poiVal, double nllNormalization);
