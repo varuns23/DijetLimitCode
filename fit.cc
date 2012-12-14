@@ -27,6 +27,7 @@ Fitter::Fitter()
   parameters_=0;
   poiIndex_=-1;
   callLimitReached_=false;
+  poiBestFit_ = 0;
 }
 
 Fitter::Fitter(TH1D* data, integral_ptr_t functionIntegral)
@@ -40,6 +41,7 @@ Fitter::Fitter(TH1D* data, integral_ptr_t functionIntegral)
   parameters_=0;
   poiIndex_=-1;
   callLimitReached_=false;
+  poiBestFit_ = 0;
 }
 
 Fitter::~Fitter()
@@ -236,7 +238,7 @@ TGraph* Fitter::calculatePosterior(int nSamples)
   setParameter(poiIndex_, 0.1*(loLimit+hiLimit));
   doFit();
   fixParameter(poiIndex_);
-  double poiBestFit=getParameter(poiIndex_);
+  poiBestFit_=getParameter(poiIndex_);
 
   // setup Fitter
   Fitter::theFitter_=this;
@@ -249,7 +251,7 @@ TGraph* Fitter::calculatePosterior(int nSamples)
 
   // recursively evaluate the posterior
   std::map<double, double> fcnEvaluations;
-  evaluateForPosterior(loLimit, poiBestFit, hiLimit, nllNormalization, fcnEvaluations);
+  evaluateForPosterior(loLimit, poiBestFit_, hiLimit, nllNormalization, fcnEvaluations);
 
   // dump the info into a graph
   int cntr=0;
@@ -352,10 +354,11 @@ TH1D* Fitter::makePseudoData(const char* name, double* parameters)
 
 void Fitter::evaluateForPosterior(double lo, double mid, double hi, double nllNormalization, std::map<double, double>& fcnEval_)
 {
-  if((nCalls_++)>150) {
+  if((nCalls_++)>1000) {
     callLimitReached_=true;
     return;
   }
+
   // get the low value
   std::map<double, double>::iterator findit;
   findit = fcnEval_.find(lo);
@@ -387,15 +390,23 @@ void Fitter::evaluateForPosterior(double lo, double mid, double hi, double nllNo
     hiVal=fcnEval_[hi];
   }
 
-  //  std::cout << "lo=" << lo << "; mid=" << mid << "; hi=" << hi << "; loval=" << loVal << "; midval=" << midVal << "; hival=" << hiVal << std::endl;
+  //double maximumValX = 0.;
   double maximumVal = -999.;
   for(std::map<double, double>::const_iterator it=fcnEval_.begin(); it!=fcnEval_.end(); ++it)
     if(maximumVal<it->second)
+    {
+      //maximumValX=it->first;
       maximumVal=it->second;
+    }
 
-  if(fabs(loVal-midVal)>0.04*maximumVal || fabs(hiVal-midVal)>0.04*maximumVal) {
-    if(fabs(lo-mid)/mid>0.001) evaluateForPosterior(lo, 0.5*(lo+mid), mid, nllNormalization, fcnEval_);
-    if(fabs(hi-mid)/hi>0.001) evaluateForPosterior(mid, 0.5*(mid+hi), hi, nllNormalization, fcnEval_);
+  // for debugging
+  //std::cout << "lo, mid, high: " << lo << ", " << mid << ", " << hi << std::endl
+  //          << "loval, midval, hival: " << loVal << ", " << midVal << ", " << hiVal << std::endl
+  //          << "maximumValX, maximumVal: " << maximumValX << ", " << maximumVal << std::endl << std::endl;
+
+  if(fabs(loVal-midVal)>0.05*maximumVal || fabs(hiVal-midVal)>0.05*maximumVal) {
+    if(fabs(lo-mid)/mid>0.01 && fabs(lo-mid)/poiBestFit_>0.01) evaluateForPosterior(lo, 0.5*(lo+mid), mid, nllNormalization, fcnEval_);
+    if(fabs(hi-mid)/hi>0.01 && fabs(hi-mid)/poiBestFit_>0.01) evaluateForPosterior(mid, 0.5*(mid+hi), hi, nllNormalization, fcnEval_);
   }
 
   return;

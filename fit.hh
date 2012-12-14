@@ -86,10 +86,11 @@ private:
   std::map<int, int> parameterIsNuisance_;
   double *parameters_;
   int poiIndex_;
-  
+
   int nSamples_;
   int nCalls_;
   bool callLimitReached_;
+  double poiBestFit_;
 
   void evaluateForPosterior(double lo, double mid, double hi, double nllNormalization, std::map<double, double>& fcnEval_);
   double computeLikelihoodWithSystematics(double poiVal, double nllNormalization);
