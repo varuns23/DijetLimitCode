@@ -32,10 +32,10 @@ using namespace std;
 ////////////////////////////////////////////////////////////////////////////////
 
 // number of pseudoexperiments (when greater than 0, expected limit with +/- 1 and 2 sigma bands is calculated)
-const int NPES=20; // 200 (the more pseudo-experiments, the better. However, 200 is a reasonable choice)
+const int NPES=200; // 200 (the more pseudo-experiments, the better. However, 200 is a reasonable choice)
 
 // number of samples of nuisance parameters for Bayesian MC integration (when greater than 0, systematic uncertanties are included in the limit calculation)
-const int NSAMPLES=4000; // 4000 (larger value is better but it also slows down the code. 4000 is a reasonable compromise between the speed and precision)
+const int NSAMPLES=0; // 4000 (larger value is better but it also slows down the code. 4000 is a reasonable compromise between the speed and precision)
 
 // alpha (1-alpha=confidence interval)
 const double ALPHA=0.05;
