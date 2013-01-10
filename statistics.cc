@@ -134,21 +134,21 @@ RandomPrior::RandomPrior(int priorType, double median, double variance, double m
   if(priorType==1) // Lognormal
   {
     oss << "_Random_Lognormal__priorfcn_" << (counter_++);
-    priorfcn_ = new TF1(oss.str().c_str(), lognormal, (min<0. ? 0. : min), max, 2);
+    priorfcn_ = new TF1(oss.str().c_str(), lognormal, std::max(0., (min<(median-5*variance) ? (median-5*variance) : min)), (max>(median+5*variance) ? (median+5*variance) : max), 2);
     priorfcn_->SetParameter(0, median);
     priorfcn_->SetParameter(1, variance);
   }
   else if(priorType==2) // Gaussian
   {
     oss << "_Random_Gaussian__priorfcn_" << (counter_++);
-    priorfcn_ = new TF1(oss.str().c_str(), gaussian, min, max, 2);
+    priorfcn_ = new TF1(oss.str().c_str(), gaussian, (min<(median-5*variance) ? (median-5*variance) : min), (max>(median+5*variance) ? (median+5*variance) : max), 2);
     priorfcn_->SetParameter(0, median);
     priorfcn_->SetParameter(1, variance);
   }
   else if(priorType==3) // Gamma
   {
     oss << "_Random_Gamma__priorfcn_" << (counter_++);
-    priorfcn_ = new TF1(oss.str().c_str(), gamma, (min<0. ? 0. : min), max, 2);
+    priorfcn_ = new TF1(oss.str().c_str(), gamma, std::max(0., (min<(median-5*variance) ? (median-5*variance) : min)), (max>(median+5*variance) ? (median+5*variance) : max), 2);
     priorfcn_->SetParameter(0, median);
     priorfcn_->SetParameter(1, variance);
   }
