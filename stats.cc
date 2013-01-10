@@ -212,7 +212,7 @@ int main(int argc, char* argv[])
 
   if(BonlyFitForSyst) shift = 0;
 
-  if(!posS) PAR_MIN[POIINDEX] = -PAR_MAX[POIINDEX];
+  if(!posS) PAR_MIN[0] = -PAR_MAX[0];
 
   // initialize the covariance matrix
   for(int i = 0; i<NPARS; ++i) { for(int j = 0; j<NPARS; ++j) COV_MATRIX[i][j]=0.; }
@@ -229,8 +229,8 @@ int main(int argc, char* argv[])
   outputfile << OUTPUTFILE.substr(0,OUTPUTFILE.find(".root")) << "_" << masspoint << "_" << BR << "_" << ResShapeType << ".root";
   TFile* rootfile=new TFile(outputfile.str().c_str(), "RECREATE");  rootfile->cd();
 
-  // POI value
-  double POIval;
+  // xs value
+  double XSval;
 
   // setup an initial fitter to perform a signal+background fit
   Fitter initfit(data, INTEGRAL);
@@ -239,14 +239,14 @@ int main(int argc, char* argv[])
   // do an initial signal+background fit first
   for(int i=0; i<NPARS; i++) if(PAR_TYPE[i]>=2 || PAR_MIN[i]==PAR_MAX[i]) initfit.fixParameter(i);
   initfit.doFit();
-  POIval = initfit.getParameter(POIINDEX); // get the POI value for later use
-  initfit.fixParameter(POIINDEX); // a parameter needs to be fixed before its value can be changed
-  initfit.setParameter(POIINDEX, 0.0); // set the POI value to 0 to get the B component of the S+B fit (for calculating pulls and generating pseudo-data)
+  XSval = initfit.getParameter(0); // get the xs value for later use
+  initfit.fixParameter(0); // a parameter needs to be fixed before its value can be changed
+  initfit.setParameter(0, 0.0); // set the xs value to 0 to get the B component of the S+B fit (for calculating pulls and generating pseudo-data)
   initfit.setPrintLevel(0);
   initfit.calcPull("pull_bkg_init")->Write();
   initfit.calcDiff("diff_bkg_init")->Write();
   initfit.write("fit_bkg_init");
-  initfit.setParameter(POIINDEX, POIval);
+  initfit.setParameter(0, XSval);
 
   // setup the limit values
   double observedLowerBound, observedUpperBound;
@@ -263,12 +263,12 @@ int main(int argc, char* argv[])
 
   // perform a signal+background fit possibly followed by a background-only fit with a fixed but non-zero signal
   for(int i=0; i<NPARS; i++) if(PAR_TYPE[i]>=2 || PAR_MIN[i]==PAR_MAX[i]) fit_data.fixParameter(i);
-  if(BonlyFitForSyst) { fit_data.doFit(); fit_data.fixParameter(POIINDEX); }
+  if(BonlyFitForSyst) { fit_data.doFit(); fit_data.fixParameter(0); }
   fit_data.doFit(&COV_MATRIX[0][0], NPARS);
   cout << "Data fit status: " << fit_data.getFitStatus() << endl;
-  POIval = fit_data.getParameter(POIINDEX); // get the POI value for later use
-  fit_data.fixParameter(POIINDEX); // a parameter needs to be fixed before its value can be changed
-  fit_data.setParameter(POIINDEX, 0.0); // set the POI value to 0 to get the B component of the S+B fit (for calculating pulls and generating pseudo-data)
+  XSval = fit_data.getParameter(0); // get the xs value for later use
+  fit_data.fixParameter(0); // a parameter needs to be fixed before its value can be changed
+  fit_data.setParameter(0, 0.0); // set the xs value to 0 to get the B component of the S+B fit (for calculating pulls and generating pseudo-data)
   fit_data.setPrintLevel(0);
   fit_data.calcPull("pull_bkg_0")->Write();
   fit_data.calcDiff("diff_bkg_0")->Write();
@@ -283,7 +283,7 @@ int main(int argc, char* argv[])
   //eigenValues.Print();
   eigenVectors = eigen_data.GetEigenVectors();
 
-  fit_data.setParLimits(POIINDEX, 0.0, PAR_MAX[POIINDEX]); // for posterior calculation, signal has to be positive
+  fit_data.setParLimits(0, 0.0, PAR_MAX[0]); // for the posterior calculation, the signal xs has to be positive
   TGraph* post_data=fit_data.calculatePosterior(NSAMPLES);
   post_data->Write("post_0");
   cout << "Call limit reached: " << (fit_data.callLimitReached() ? "True" : "False") << endl;
@@ -304,9 +304,9 @@ int main(int argc, char* argv[])
     pestr << "_" << pe;
 
     // setup the fitter with the input from the signal+background fit
-    fit_data.setParameter(POIINDEX, 0.0); // set the POI value to 0 to get the B component of the S+B fit (for calculating pulls and generating pseudo-data)
+    fit_data.setParameter(0, 0.0); // set the xs value to 0 to get the B component of the S+B fit (for calculating pulls and generating pseudo-data)
     TH1D* hist = fit_data.makePseudoData((string("data")+pestr.str()).c_str());
-    fit_data.setParameter(POIINDEX, POIval);
+    fit_data.setParameter(0, XSval);
 
     Fitter fit(hist, INTEGRAL);
     fit.setPOIIndex(POIINDEX);
@@ -315,12 +315,12 @@ int main(int argc, char* argv[])
 
     // perform a signal+background fit possibly followed by a background-only fit with a fixed but non-zero signal
     for(int i=0; i<NPARS; i++) if(PAR_TYPE[i]>=2 || PAR_MIN[i]==PAR_MAX[i]) fit.fixParameter(i);
-    if(BonlyFitForSyst) { fit.doFit(); fit.fixParameter(POIINDEX); }
+    if(BonlyFitForSyst) { fit.doFit(); fit.fixParameter(0); }
     fit.doFit(&COV_MATRIX[0][0], NPARS);
     string fitStatus = fit.getFitStatus();
     if(fitStatus.find("CONVERGED")==string::npos) continue; // skip the PE if the fit did not converge
-    fit.fixParameter(POIINDEX); // a parameter needs to be fixed before its value can be changed
-    fit.setParameter(POIINDEX, 0.0); // set the POI value to 0 to get the B component of the S+B fit (for calculating pulls and generating pseudo-data)
+    fit.fixParameter(0); // a parameter needs to be fixed before its value can be changed
+    fit.setParameter(0, 0.0); // set the xs value to 0 to get the B component of the S+B fit (for calculating pulls and generating pseudo-data)
     fit.calcPull((string("pull_bkg")+pestr.str()).c_str())->Write();
     fit.calcDiff((string("diff_bkg")+pestr.str()).c_str())->Write();
     fit.write((string("fit_bkg")+pestr.str()).c_str());
@@ -335,7 +335,7 @@ int main(int argc, char* argv[])
     eigenValues.Sqrt();
     eigenVectors = eigen.GetEigenVectors();
 
-    fit.setParLimits(POIINDEX, 0.0, PAR_MAX[POIINDEX]); // for posterior calculation, signal has to be positive
+    fit.setParLimits(0, 0.0, PAR_MAX[0]); // for the posterior calculation, the signal xs has to be positive
     TGraph* post=fit.calculatePosterior(NSAMPLES);
     post->Write((string("post")+pestr.str()).c_str());
     cout << "Call limit reached in pe=" << pe << ": " << (fit.callLimitReached() ? "True" : "False") << endl;
