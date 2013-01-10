@@ -16,7 +16,7 @@ class Fitter
 public:
   // constructor/destructor
   Fitter();
-  Fitter(TH1D* data, integral_ptr_t functionIntegral);
+  Fitter(TH1D* data, integral_ptr_t functionIntegral, int maxpar=25);
   virtual ~Fitter();
 
   // setters

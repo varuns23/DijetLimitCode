@@ -31,7 +31,8 @@ Fitter::Fitter()
   poiUserError_ = 0;
 }
 
-Fitter::Fitter(TH1D* data, integral_ptr_t functionIntegral)
+Fitter::Fitter(TH1D* data, integral_ptr_t functionIntegral, int maxpar) :
+minuit_(maxpar)
 {
   data_=data;
   functionIntegral_=functionIntegral;
@@ -394,24 +395,25 @@ void Fitter::evaluateForPosterior(double lo, double mid, double hi, double nllNo
     hiVal=fcnEval_[hi];
   }
 
-  //double maximumValX = 0.;
+  double maximumValX = 0.;
   double maximumVal = -999.;
   for(std::map<double, double>::const_iterator it=fcnEval_.begin(); it!=fcnEval_.end(); ++it)
     if(maximumVal<it->second)
     {
-      //maximumValX=it->first;
+      maximumValX=it->first;
       maximumVal=it->second;
     }
 
   // for debugging
   //std::cout << "nCalls: " << nCalls_ << std::endl
-  //          << "lo, mid, high: " << lo << ", " << mid << ", " << hi << std::endl
-  //          << "loval, midval, hival: " << loVal << ", " << midVal << ", " << hiVal << std::endl
-  //          << "maximumValX, maximumVal: " << maximumValX << ", " << maximumVal << std::endl << std::endl;
+  //         << "nllNormalization: " << nllNormalization << std::endl
+  //         << "lo, mid, high: " << lo << ", " << mid << ", " << hi << std::endl
+  //         << "loval, midval, hival: " << loVal << ", " << midVal << ", " << hiVal << std::endl
+  //         << "maximumValX, maximumVal: " << maximumValX << ", " << maximumVal << std::endl << std::endl;
 
-  if(fabs(loVal-midVal)>0.05*maximumVal || fabs(hiVal-midVal)>0.05*maximumVal) {
-    if(fabs(hi-mid)/hi>0.01 && fabs(hi-mid)/poiBestFit_>0.01 && fabs(hi-mid)>poiUserError_) evaluateForPosterior(mid, 0.5*(mid+hi), hi, nllNormalization, fcnEval_); // imortant to go to the mid-high range first to get a nice falling posteriror tail in case the number of calls limit is reached
-    if(fabs(lo-mid)/mid>0.01 && fabs(lo-mid)/poiBestFit_>0.01 && fabs(lo-mid)>poiUserError_) evaluateForPosterior(lo, 0.5*(lo+mid), mid, nllNormalization, fcnEval_);
+  if(fabs(loVal-midVal)>0.04*maximumVal || fabs(hiVal-midVal)>0.04*maximumVal) {
+    if(fabs(hi-mid)/fabs(hi)>0.01 && fabs(hi-mid)/fabs(poiBestFit_)>0.01 && fabs(hi-mid)>poiUserError_) evaluateForPosterior(mid, 0.5*(mid+hi), hi, nllNormalization, fcnEval_); // important to go to the mid-high range first to get a nicely falling posterior tail in case the number of calls limit is reached
+    if(fabs(lo-mid)/fabs(mid)>0.01 && fabs(lo-mid)/fabs(poiBestFit_)>0.01 && fabs(lo-mid)>poiUserError_) evaluateForPosterior(lo, 0.5*(lo+mid), mid, nllNormalization, fcnEval_);
   }
 
   return;
@@ -440,8 +442,6 @@ double Fitter::computeLikelihoodWithSystematics(double poiVal, double nllNormali
       double lolim, uplim;
       getParameter(it->first, parval, parerr);
       getParLimits(it->first, lolim, uplim);
-      if(lolim<parval-5*parerr) lolim=parval-5*parerr;
-      if(uplim>parval+5*parerr) uplim=parval+5*parerr;
       priors[it->first]=new RandomPrior(it->second, parval, parerr, lolim, uplim);
     }
   }
@@ -580,8 +580,6 @@ std::pair<int, int> Fitter::calculateCLs_(double poiVal, std::vector<double>& CL
       double lolim, uplim;
       getParameter(it->first, parval, parerr);
       getParLimits(it->first, lolim, uplim);
-      if(lolim<parval-5*parerr) lolim=parval-5*parerr;
-      if(uplim>parval+5*parerr) uplim=parval+5*parerr;
       priors[it->first]=new RandomPrior(it->second, parval, parerr, lolim, uplim);
     }
   }
