@@ -29,6 +29,7 @@ Fitter::Fitter()
   callLimitReached_=false;
   poiBestFit_ = 0;
   poiUserError_ = 0;
+  parRangeSet_=false;
 }
 
 Fitter::Fitter(TH1D* data, integral_ptr_t functionIntegral, int maxpar) :
@@ -45,6 +46,7 @@ minuit_(maxpar)
   callLimitReached_=false;
   poiBestFit_ = 0;
   poiUserError_ = 0;
+  parRangeSet_=false;
 }
 
 Fitter::~Fitter()
@@ -395,12 +397,12 @@ void Fitter::evaluateForPosterior(double lo, double mid, double hi, double nllNo
     hiVal=fcnEval_[hi];
   }
 
-  double maximumValX = 0.;
+  //double maximumValX = 0.;
   double maximumVal = -999.;
   for(std::map<double, double>::const_iterator it=fcnEval_.begin(); it!=fcnEval_.end(); ++it)
     if(maximumVal<it->second)
     {
-      maximumValX=it->first;
+      //maximumValX=it->first;
       maximumVal=it->second;
     }
 
@@ -440,11 +442,64 @@ double Fitter::computeLikelihoodWithSystematics(double poiVal, double nllNormali
       assert(it->first!=poiIndex_);
       double parval, parerr;
       double lolim, uplim;
-      getParameter(it->first, parval, parerr);
-      getParLimits(it->first, lolim, uplim);
-      priors[it->first]=new RandomPrior(it->second, parval, parerr, lolim, uplim);
+      // find the optimal integration range for nuisance parameters with uniform priors
+      if(it->second>=4 && !parRangeSet_)
+      {
+        getParameter(it->first, parval, parerr);
+        getParLimits(it->first, lolim, uplim);
+        double tempval=parval, tempuplim=parval, templolim=parval;
+        bool uplimFound=false, lolimFound=false;
+        while(tempval<=uplim)
+        {
+          pars[it->first]=tempval;
+          nll(a,0,f,pars,0);
+          if(TMath::Exp(-f+nllNormalization)<1.E-3)
+          {
+            tempuplim=tempval+0.5*(tempval-parval);
+            uplimFound=true;
+            break;
+          }
+          tempval=tempval+parerr;
+        }
+        tempval=parval;
+        while(tempval>=lolim)
+        {
+          pars[it->first]=tempval;
+          nll(a,0,f,pars,0);
+          if(TMath::Exp(-f+nllNormalization)<1.E-3)
+          {
+            templolim=tempval-0.5*(parval-tempval);
+            lolimFound=true;
+            break;
+          }
+          tempval=tempval-parerr;
+        }
+        pars[it->first]=parval; // return the parameter to its original value
+
+        if((!uplimFound || tempuplim>uplim) || (!lolimFound || templolim<lolim))
+        {
+          std::cout << "WARNING! The integration range for parameter " << (it->first+1) << " [" << lolim << ", " << uplim << "] is likely too narrow. Please extend the range." << std::endl;
+          priors[it->first]=new RandomPrior(it->second, parval, parerr, lolim, uplim);
+        }
+        else
+        {
+          double maxdiff = std::max(tempuplim-parval,parval-templolim);
+          templolim = parval - maxdiff;
+          tempuplim = parval + maxdiff;
+          std::cout << "The integration range for parameter " << (it->first+1) << " set to [" << templolim << ", " << tempuplim << "]" << std::endl;
+          setParLimits(it->first, templolim, tempuplim);
+          priors[it->first]=new RandomPrior(it->second, parval, parerr, templolim, tempuplim);
+        }
+      }
+      else
+      {
+        getParameter(it->first, parval, parerr);
+        getParLimits(it->first, lolim, uplim);
+        priors[it->first]=new RandomPrior(it->second, parval, parerr, lolim, uplim);
+      }
     }
   }
+  if(!parRangeSet_) parRangeSet_=true;
 
   // calculate average likelihood value over nuisance parameters
   double total=0.0;

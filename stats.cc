@@ -62,10 +62,10 @@ const int NPARS=12;
 const int NBKGPARS=4;
 const int POIINDEX=0; // which parameter is "of interest"
 const char* PAR_NAMES[NPARS]    = { "xs", "lumi",  "jes", "jer",        "p0",        "p1",        "p2",         "p3", "n0", "n1", "n2", "n3" };
-      double PAR_GUESSES[NPARS] = { 1E-5,  4976.,    1.0,   1.0, 3.27713e-01, 8.33753e+00, 5.37123e+00,  4.05975e-02,    0,    0,    0,    0 };
-      double PAR_MIN[NPARS]     = {    0,    0.0,    0.0,   0.0,       -9999,       -9999,       -9999,        -9999,  -10,  -20,  -10,  -10 };
-const double PAR_MAX[NPARS]     = {  1E2,  6000.,    2.0,   2.0,        9999,        9999,        9999,         9999,   10,   20,   10,   10 };
-      double PAR_ERR[NPARS]     = { 1E-5,   110., 0.0125,  0.10,      1e-02,        1e-01,       1e-01,        1e-02,    1,    1,    1,    1 };
+      double PAR_GUESSES[NPARS] = { 1E-6,  4976.,    1.0,   1.0, 3.27713e-01, 8.33753e+00, 5.37123e+00,  4.05975e-02,    0,    0,    0,    0 };
+      double PAR_MIN[NPARS]     = {    0,    0.0,    0.0,   0.0,       -9999,       -9999,       -9999,        -9999, -100, -100, -100, -100 };
+const double PAR_MAX[NPARS]     = {  1E2,  6000.,    2.0,   2.0,        9999,        9999,        9999,         9999,  100,  100,  100,  100 };
+      double PAR_ERR[NPARS]     = { 1E-6,   110., 0.0125,  0.10,      1e-02,        1e-01,       1e-01,        1e-02,    1,    1,    1,    1 };
 const int PAR_TYPE[NPARS]       = {    1,      2,      2,     2,          0,            0,           0,            0,    3,    3,    3,    3 }; // // 1,2 = signal (2 not used in the fit); 0,3 = background (3 not used in the fit)
 const int PAR_NUIS[NPARS]       = {    0,      1,      1,     1,          0,            0,           0,            0,    4,    4,    4,    4 }; // 0 = not varied, >=1 = nuisance parameters with different priors (1 = Lognormal, 2 = Gaussian, 3 = Gamma, >=4 = Uniform)
 
@@ -253,7 +253,7 @@ int main(int argc, char* argv[])
   vector<double> expectedLowerBounds;
   vector<double> expectedUpperBounds;
 
-  cout << "*********** pe=0 (data) ***********" << endl;
+  cout << "********************** pe=0 (data) **********************" << endl;
 
   // setup the fitter with the input from the signal+background fit
   Fitter fit_data(data, INTEGRAL);
@@ -266,7 +266,6 @@ int main(int argc, char* argv[])
   if(BonlyFitForSyst) { fit_data.doFit(); fit_data.fixParameter(0); }
   fit_data.doFit(&COV_MATRIX[0][0], NPARS);
   cout << "Data fit status: " << fit_data.getFitStatus() << endl;
-  XSval = fit_data.getParameter(0); // get the xs value for later use
   fit_data.fixParameter(0); // a parameter needs to be fixed before its value can be changed
   fit_data.setParameter(0, 0.0); // set the xs value to 0 to get the B component of the S+B fit (for calculating pulls and generating pseudo-data)
   fit_data.setPrintLevel(0);
@@ -299,14 +298,14 @@ int main(int argc, char* argv[])
   // perform the PEs
   for(int pe=1; pe<=NPES; ++pe) {
 
-    cout << "*********** pe=" << pe << " ***********" << endl;
+    cout << "********************** pe=" << pe << " **********************" << endl;
     ostringstream pestr;
     pestr << "_" << pe;
 
     // setup the fitter with the input from the signal+background fit
     fit_data.setParameter(0, 0.0); // set the xs value to 0 to get the B component of the S+B fit (for calculating pulls and generating pseudo-data)
     TH1D* hist = fit_data.makePseudoData((string("data")+pestr.str()).c_str());
-    fit_data.setParameter(0, XSval);
+    fit_data.setParameter(0, PAR_GUESSES[0]);
 
     Fitter fit(hist, INTEGRAL);
     fit.setPOIIndex(POIINDEX);
@@ -317,8 +316,7 @@ int main(int argc, char* argv[])
     for(int i=0; i<NPARS; i++) if(PAR_TYPE[i]>=2 || PAR_MIN[i]==PAR_MAX[i]) fit.fixParameter(i);
     if(BonlyFitForSyst) { fit.doFit(); fit.fixParameter(0); }
     fit.doFit(&COV_MATRIX[0][0], NPARS);
-    string fitStatus = fit.getFitStatus();
-    if(fitStatus.find("CONVERGED")==string::npos) continue; // skip the PE if the fit did not converge
+    if(fit.getFitStatus().find("CONVERGED")==string::npos) continue; // skip the PE if the fit did not converge
     fit.fixParameter(0); // a parameter needs to be fixed before its value can be changed
     fit.setParameter(0, 0.0); // set the xs value to 0 to get the B component of the S+B fit (for calculating pulls and generating pseudo-data)
     fit.calcPull((string("pull_bkg")+pestr.str()).c_str())->Write();

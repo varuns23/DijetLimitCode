@@ -25,7 +25,7 @@ public:
 
   // getters
   bool callLimitReached() { return callLimitReached_; }
-  const char* getFitStatus() { return minuit_.fCstatu.Data(); }
+  const std::string getFitStatus() { return std::string(minuit_.fCstatu.Data()); }
   int getNCalls() { return minuit_.fNfcn; }
 
   // parameter manipulation
@@ -92,6 +92,7 @@ private:
   bool callLimitReached_;
   double poiBestFit_;
   double poiUserError_;
+  bool parRangeSet_; // only used for nuisance parameters with uniform priors
 
   void evaluateForPosterior(double lo, double mid, double hi, double nllNormalization, std::map<double, double>& fcnEval_);
   double computeLikelihoodWithSystematics(double poiVal, double nllNormalization);
