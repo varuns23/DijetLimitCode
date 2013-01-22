@@ -8,7 +8,7 @@ INCDIRS = -I${ROOTSYS}/include
 
 # Include Root's architecture file that has options for all of it's
 # supported compilers
-include ${ROOTSYS}/test/Makefile.arch
+include ${ROOTSYS}/etc/Makefile.arch
 
 # Here's where you'd want to define any #define with -DVariableName
 CFLAGS += $(INCDIRS) -O2 -g
