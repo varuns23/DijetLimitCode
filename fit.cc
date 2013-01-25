@@ -449,6 +449,8 @@ double Fitter::computeLikelihoodWithSystematics(double poiVal, double nllNormali
         getParLimits(it->first, lolim, uplim);
         double tempval=parval, tempuplim=parval, templolim=parval;
         bool uplimFound=false, lolimFound=false;
+        pars[poiIndex_]=poiBestFit_; // here we need to use the best-fit value in order to probe the posterior likelihood around its maximum
+
         while(tempval<=uplim)
         {
           pars[it->first]=tempval;
@@ -474,7 +476,6 @@ double Fitter::computeLikelihoodWithSystematics(double poiVal, double nllNormali
           }
           tempval=tempval-parerr;
         }
-        pars[it->first]=parval; // return the parameter to its original value
 
         if((!uplimFound || tempuplim>uplim) || (!lolimFound || templolim<lolim))
         {
@@ -490,6 +491,10 @@ double Fitter::computeLikelihoodWithSystematics(double poiVal, double nllNormali
           setParLimits(it->first, templolim, tempuplim);
           priors[it->first]=new RandomPrior(it->second, parval, parerr, templolim, tempuplim);
         }
+
+        // return the parameters to their original values
+        pars[it->first]=parval;
+        pars[poiIndex_]=poiVal;
       }
       else
       {
