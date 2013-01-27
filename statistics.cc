@@ -156,7 +156,7 @@ RandomPrior::RandomPrior(int priorType, double median, double variance, double m
   {
     oss << "_Random_Uniform__priorfcn_" << (counter_++);
     priorfcn_ = new TF1(oss.str().c_str(), "pol0", min, max);
-    priorfcn_->SetParameter(0, 1.);
+    priorfcn_->SetParameter(0, 1./(max-min));
   }
 }
 
