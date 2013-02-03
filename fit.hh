@@ -3,15 +3,17 @@
 
 #include <map>
 #include <TMinuit.h>
+#include <TRandom3.h>
+#include <BAT/BCModel.h>
 
 class TGraph;
-class TRandom3;
 class TF1;
 class TH1D;
+class RandomPrior;
 
 typedef double (*integral_ptr_t)(double*, double*, double*);
 
-class Fitter
+class Fitter : public BCModel
 {
 public:
   // constructor/destructor
@@ -19,9 +21,14 @@ public:
   Fitter(TH1D* data, integral_ptr_t functionIntegral, int maxpar=25);
   virtual ~Fitter();
 
+  // overloaded methods from BCModel
+  double LogAPrioriProbability(const std::vector<double> &parameters);
+  double LogLikelihood(const std::vector<double> &parameters);
+
   // setters
   void setData(TH1D* hist) { data_=hist; }
   void setFunctionIntegral(integral_ptr_t fcnintegral) { functionIntegral_=fcnintegral; }
+  void setRandomSeed(unsigned int seed) { rand_->SetSeed(seed); }
 
   // getters
   bool callLimitReached() { return callLimitReached_; }
@@ -64,7 +71,7 @@ public:
   TH1D* makePseudoData(const char* name, double* parameters=0);
 
   // calculate the posterior distribution
-  TGraph* calculatePosterior(int nSamples);
+  TGraph* calculatePosterior(int nSamples, bool useMCMC=false);
 
   // return the error on a histogram bin with N events
   static double histError(double N);
@@ -76,14 +83,15 @@ private:
 
   static void nll(int &, double*, double&, double*, int);
   static Fitter* theFitter_;
-  static TRandom3* rand_;
 
+  TRandom3* rand_;
   TMinuit minuit_;
   integral_ptr_t functionIntegral_;
   TH1D* data_;
   int printlevel_;
   int strategy_;
   std::map<int, int> parameterIsNuisance_;
+  std::map<int, RandomPrior*> priors_;  // nuisance parameter priors
   double *parameters_;
   int poiIndex_;
 
@@ -93,6 +101,7 @@ private:
   double poiBestFit_;
   double poiUserError_;
   bool parRangeSet_; // only used for nuisance parameters with uniform priors
+  bool useMCMC_;
 
   void evaluateForPosterior(double lo, double mid, double hi, double nllNormalization, std::map<double, double>& fcnEval_);
   double computeLikelihoodWithSystematics(double poiVal, double nllNormalization);
@@ -100,7 +109,6 @@ private:
   // calculate the CLs
   std::pair<int, int> calculateCLs_(double poiVal, std::vector<double>& CLb, std::vector<double>& CLsb);
 
- 
 };
 
 #endif

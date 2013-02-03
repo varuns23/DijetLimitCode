@@ -14,6 +14,7 @@
 #include <TMatrixD.h>
 #include <TMatrixDSym.h>
 #include <TMatrixDSymEigen.h>
+#include <BAT/BCLog.h>
 
 #include "binneddata.hh"
 #include "fit.hh"
@@ -36,6 +37,12 @@ const int NPES=200; // 200 (the more pseudo-experiments, the better. However, 20
 
 // number of samples of nuisance parameters for Bayesian MC integration (when greater than 0, systematic uncertanties are included in the limit calculation)
 const int NSAMPLES=0; // 5000 (larger value is better but it also slows down the code. 5000 is a reasonable compromise between the speed and precision)
+
+// use Markov chain Monte Carlo (MCMC) to marginalize nuisance parameters
+const int useMCMC = 0;
+
+// set the factor that defines the upper bound for the signal xs used by the MCMC as xsUpperBoundFactor*stat-only_limit
+const double xsUpperBoundFactor=3.0;
 
 // alpha (1-alpha=confidence interval)
 const double ALPHA=0.05;
@@ -73,6 +80,7 @@ const int PAR_NUIS[NPARS]       = {    0,      1,      1,     1,          0,    
 //const int PAR_NUIS[NPARS]       = {    0,      1,     0,     0,          0,            0,           0,            0,    0,    0,    0,    0 }; // lumi only
 //const int PAR_NUIS[NPARS]       = {    0,      0,     1,     0,          0,            0,           0,            0,    0,    0,    0,    0 }; // jes only
 //const int PAR_NUIS[NPARS]       = {    0,      0,     0,     1,          0,            0,           0,            0,    0,    0,    0,    0 }; // jer only
+//const int PAR_NUIS[NPARS]       = {    0,      1,     1,     1,          0,            0,           0,            0,    0,    0,    0,    0 }; // for all except background
 //const int PAR_NUIS[NPARS]       = {    0,      0,     0,     0,          0,            0,           0,            0,    4,    4,    4,    4 }; // background only
 
 //
@@ -217,6 +225,9 @@ int main(int argc, char* argv[])
   // initialize the covariance matrix
   for(int i = 0; i<NPARS; ++i) { for(int j = 0; j<NPARS; ++j) COV_MATRIX[i][j]=0.; }
 
+  // enable more detailed printout from the BAT MCMC
+  BCLog::SetLogLevel(BCLog::detail);
+
   HISTCDF=getSignalCDF(filename1.c_str(), histname1.str().c_str(), filename2.c_str(), histname2.str().c_str(), BR, 1., 1.);
 
   assert(HISTCDF && SIGMASS>0);
@@ -233,20 +244,20 @@ int main(int argc, char* argv[])
   double XSval;
 
   // setup an initial fitter to perform a signal+background fit
-  Fitter initfit(data, INTEGRAL);
-  for(int i=0; i<NPARS; i++) initfit.defineParameter(i, PAR_NAMES[i], PAR_GUESSES[i], PAR_ERR[i], PAR_MIN[i], PAR_MAX[i], PAR_NUIS[i]);
+  Fitter* initfit = new Fitter(data, INTEGRAL);
+  for(int i=0; i<NPARS; i++) initfit->defineParameter(i, PAR_NAMES[i], PAR_GUESSES[i], PAR_ERR[i], PAR_MIN[i], PAR_MAX[i], PAR_NUIS[i]);
 
   // do an initial signal+background fit first
-  for(int i=0; i<NPARS; i++) if(PAR_TYPE[i]>=2 || PAR_MIN[i]==PAR_MAX[i]) initfit.fixParameter(i);
-  initfit.doFit();
-  XSval = initfit.getParameter(0); // get the xs value for later use
-  initfit.fixParameter(0); // a parameter needs to be fixed before its value can be changed
-  initfit.setParameter(0, 0.0); // set the xs value to 0 to get the B component of the S+B fit (for calculating pulls and generating pseudo-data)
-  initfit.setPrintLevel(0);
-  initfit.calcPull("pull_bkg_init")->Write();
-  initfit.calcDiff("diff_bkg_init")->Write();
-  initfit.write("fit_bkg_init");
-  initfit.setParameter(0, XSval);
+  for(int i=0; i<NPARS; i++) if(PAR_TYPE[i]>=2 || PAR_MIN[i]==PAR_MAX[i]) initfit->fixParameter(i);
+  initfit->doFit();
+  XSval = initfit->getParameter(0); // get the xs value for later use
+  initfit->fixParameter(0); // a parameter needs to be fixed before its value can be changed
+  initfit->setParameter(0, 0.0); // set the xs value to 0 to get the B component of the S+B fit (for calculating pulls and generating pseudo-data)
+  initfit->setPrintLevel(0);
+  initfit->calcPull("pull_bkg_init")->Write();
+  initfit->calcDiff("diff_bkg_init")->Write();
+  initfit->write("fit_bkg_init");
+  initfit->setParameter(0, XSval);
 
   // setup the limit values
   double observedLowerBound, observedUpperBound;
@@ -256,22 +267,22 @@ int main(int argc, char* argv[])
   cout << "********************** pe=0 (data) **********************" << endl;
 
   // setup the fitter with the input from the signal+background fit
-  Fitter fit_data(data, INTEGRAL);
-  fit_data.setPOIIndex(POIINDEX);
-  //fit_data.setPrintLevel(0);
-  for(int i=0; i<NPARS; i++) fit_data.defineParameter(i, PAR_NAMES[i], initfit.getParameter(i), PAR_ERR[i], PAR_MIN[i], PAR_MAX[i], PAR_NUIS[i]);
+  Fitter* fit_data = new Fitter(data, INTEGRAL);
+  fit_data->setPOIIndex(POIINDEX);
+  //fit_data->setPrintLevel(0);
+  for(int i=0; i<NPARS; i++) fit_data->defineParameter(i, PAR_NAMES[i], initfit->getParameter(i), PAR_ERR[i], PAR_MIN[i], PAR_MAX[i], PAR_NUIS[i]);
 
   // perform a signal+background fit possibly followed by a background-only fit with a fixed but non-zero signal
-  for(int i=0; i<NPARS; i++) if(PAR_TYPE[i]>=2 || PAR_MIN[i]==PAR_MAX[i]) fit_data.fixParameter(i);
-  if(BonlyFitForSyst) { fit_data.doFit(); fit_data.fixParameter(0); }
-  fit_data.doFit(&COV_MATRIX[0][0], NPARS);
-  cout << "Data fit status: " << fit_data.getFitStatus() << endl;
-  fit_data.fixParameter(0); // a parameter needs to be fixed before its value can be changed
-  fit_data.setParameter(0, 0.0); // set the xs value to 0 to get the B component of the S+B fit (for calculating pulls and generating pseudo-data)
-  fit_data.setPrintLevel(0);
-  fit_data.calcPull("pull_bkg_0")->Write();
-  fit_data.calcDiff("diff_bkg_0")->Write();
-  fit_data.write("fit_bkg_0");
+  for(int i=0; i<NPARS; i++) if(PAR_TYPE[i]>=2 || PAR_MIN[i]==PAR_MAX[i]) fit_data->fixParameter(i);
+  if(BonlyFitForSyst) { fit_data->doFit(); fit_data->fixParameter(0); }
+  fit_data->doFit(&COV_MATRIX[0][0], NPARS);
+  cout << "Data fit status: " << fit_data->getFitStatus() << endl;
+  fit_data->fixParameter(0); // a parameter needs to be fixed before its value can be changed
+  fit_data->setParameter(0, 0.0); // set the xs value to 0 to get the B component of the S+B fit (for calculating pulls and generating pseudo-data)
+  fit_data->setPrintLevel(0);
+  fit_data->calcPull("pull_bkg_0")->Write();
+  fit_data->calcDiff("diff_bkg_0")->Write();
+  fit_data->write("fit_bkg_0");
 
   // calculate eigenvalues and eigenvectors
   for(int i = 0; i<NBKGPARS; ++i) { for(int j = 0; j<NBKGPARS; ++j) { covMatrix(i,j)=COV_MATRIX[i+shift][j+shift]; } }
@@ -281,11 +292,26 @@ int main(int argc, char* argv[])
   eigenValues.Sqrt();
   //eigenValues.Print();
   eigenVectors = eigen_data.GetEigenVectors();
+  //eigenVectors.Print();
 
-  fit_data.setParLimits(0, 0.0, PAR_MAX[0]); // for the posterior calculation, the signal xs has to be positive
-  TGraph* post_data=fit_data.calculatePosterior(NSAMPLES);
-  post_data->Write("post_0");
-  cout << "Call limit reached: " << (fit_data.callLimitReached() ? "True" : "False") << endl;
+  fit_data->setParLimits(0, 0.0, PAR_MAX[0]); // for the posterior calculation, the signal xs has to be positive
+  TGraph* post_data = 0;
+  if(useMCMC==0)
+  {
+    post_data=fit_data->calculatePosterior(NSAMPLES);
+    post_data->Write("post_0");
+    cout << "Call limit reached: " << (fit_data->callLimitReached() ? "True" : "False") << endl;
+  }
+  else
+  {
+    post_data=fit_data->calculatePosterior(0);
+    pair<double, double> statonly_bounds=evaluateInterval(post_data, ALPHA, LEFTSIDETAIL);
+    fit_data->setParLimits(0, 0.0, xsUpperBoundFactor*(statonly_bounds.second));
+    post_data=fit_data->calculatePosterior(NSAMPLES, useMCMC);
+    //fit_data->PrintAllMarginalized("plots.ps");
+    //fit_data->PrintResults("results.txt");
+    post_data->Write("post_0");
+  }
 
   // evaluate the limit
   pair<double, double> bounds_data=evaluateInterval(post_data, ALPHA, LEFTSIDETAIL);
@@ -303,25 +329,25 @@ int main(int argc, char* argv[])
     pestr << "_" << pe;
 
     // setup the fitter with the input from the signal+background fit
-    fit_data.setParameter(0, 0.0); // set the xs value to 0 to get the B component of the S+B fit (for calculating pulls and generating pseudo-data)
-    TH1D* hist = fit_data.makePseudoData((string("data")+pestr.str()).c_str());
-    fit_data.setParameter(0, PAR_GUESSES[0]);
+    fit_data->setParameter(0, 0.0); // set the xs value to 0 to get the B component of the S+B fit (for calculating pulls and generating pseudo-data)
+    TH1D* hist = fit_data->makePseudoData((string("data")+pestr.str()).c_str());
+    fit_data->setParameter(0, PAR_GUESSES[0]);
 
-    Fitter fit(hist, INTEGRAL);
-    fit.setPOIIndex(POIINDEX);
-    fit.setPrintLevel(0);
-    for(int i=0; i<NPARS; i++) fit.defineParameter(i, PAR_NAMES[i], fit_data.getParameter(i), PAR_ERR[i], PAR_MIN[i], PAR_MAX[i], PAR_NUIS[i]);
+    Fitter* fit = new Fitter(hist, INTEGRAL);
+    fit->setPOIIndex(POIINDEX);
+    fit->setPrintLevel(0);
+    for(int i=0; i<NPARS; i++) fit->defineParameter(i, PAR_NAMES[i], fit_data->getParameter(i), PAR_ERR[i], PAR_MIN[i], PAR_MAX[i], PAR_NUIS[i]);
 
     // perform a signal+background fit possibly followed by a background-only fit with a fixed but non-zero signal
-    for(int i=0; i<NPARS; i++) if(PAR_TYPE[i]>=2 || PAR_MIN[i]==PAR_MAX[i]) fit.fixParameter(i);
-    if(BonlyFitForSyst) { fit.doFit(); fit.fixParameter(0); }
-    fit.doFit(&COV_MATRIX[0][0], NPARS);
-    if(fit.getFitStatus().find("CONVERGED")==string::npos) continue; // skip the PE if the fit did not converge
-    fit.fixParameter(0); // a parameter needs to be fixed before its value can be changed
-    fit.setParameter(0, 0.0); // set the xs value to 0 to get the B component of the S+B fit (for calculating pulls and generating pseudo-data)
-    fit.calcPull((string("pull_bkg")+pestr.str()).c_str())->Write();
-    fit.calcDiff((string("diff_bkg")+pestr.str()).c_str())->Write();
-    fit.write((string("fit_bkg")+pestr.str()).c_str());
+    for(int i=0; i<NPARS; i++) if(PAR_TYPE[i]>=2 || PAR_MIN[i]==PAR_MAX[i]) fit->fixParameter(i);
+    if(BonlyFitForSyst) { fit->doFit(); fit->fixParameter(0); }
+    fit->doFit(&COV_MATRIX[0][0], NPARS);
+    if(fit->getFitStatus().find("CONVERGED")==string::npos) continue; // skip the PE if the fit did not converge
+    fit->fixParameter(0); // a parameter needs to be fixed before its value can be changed
+    fit->setParameter(0, 0.0); // set the xs value to 0 to get the B component of the S+B fit (for calculating pulls and generating pseudo-data)
+    fit->calcPull((string("pull_bkg")+pestr.str()).c_str())->Write();
+    fit->calcDiff((string("diff_bkg")+pestr.str()).c_str())->Write();
+    fit->write((string("fit_bkg")+pestr.str()).c_str());
 
     // calculate eigenvalues and eigenvectors
     for(int i = 0; i<NBKGPARS; ++i) { for(int j = 0; j<NBKGPARS; ++j) { covMatrix(i,j)=COV_MATRIX[i+shift][j+shift]; } }
@@ -333,10 +359,22 @@ int main(int argc, char* argv[])
     eigenValues.Sqrt();
     eigenVectors = eigen.GetEigenVectors();
 
-    fit.setParLimits(0, 0.0, PAR_MAX[0]); // for the posterior calculation, the signal xs has to be positive
-    TGraph* post=fit.calculatePosterior(NSAMPLES);
-    post->Write((string("post")+pestr.str()).c_str());
-    cout << "Call limit reached in pe=" << pe << ": " << (fit.callLimitReached() ? "True" : "False") << endl;
+    fit->setParLimits(0, 0.0, PAR_MAX[0]); // for the posterior calculation, the signal xs has to be positive
+    TGraph* post = 0;
+    if(useMCMC==0)
+    {
+      post=fit->calculatePosterior(NSAMPLES);
+      post->Write((string("post")+pestr.str()).c_str());
+      cout << "Call limit reached in pe=" << pe << ": " << (fit->callLimitReached() ? "True" : "False") << endl;
+    }
+    else
+    {
+      post=fit->calculatePosterior(0);
+      pair<double, double> statonly_bounds=evaluateInterval(post, ALPHA, LEFTSIDETAIL);
+      fit->setParLimits(0, 0.0, xsUpperBoundFactor*(statonly_bounds.second));
+      post=fit->calculatePosterior(NSAMPLES, useMCMC);
+      post->Write((string("post")+pestr.str()).c_str());
+    }
 
     // evaluate the limit
     pair<double, double> bounds=evaluateInterval(post, ALPHA, LEFTSIDETAIL);
@@ -348,6 +386,8 @@ int main(int argc, char* argv[])
 
     // reset the covariance matrix
     for(int i = 0; i<NPARS; ++i) { for(int j = 0; j<NPARS; ++j) COV_MATRIX[i][j]=0.; }
+
+    delete fit;
   }
 
   ////////////////////////////////////////////////////////////////////////////////

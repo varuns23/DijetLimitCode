@@ -2,13 +2,16 @@ EXECNAME = stats
 
 # Which libraries to include
 #USERLIBS= -lMathCore -lMathMore -lReflexDict -lCore -lCint -lReflex -lFoam -lMinuit
-USERLIBS= -lMinuit
+USERLIBS= -lMinuit -L${BATINSTALLDIR}/lib -lBATmodels -lBATmtf -lBAT
 
-INCDIRS = -I${ROOTSYS}/include
+INCDIRS = -I${ROOTSYS}/include -I${BATINSTALLDIR}/include
 
 # Include Root's architecture file that has options for all of it's
 # supported compilers
 include ${ROOTSYS}/etc/Makefile.arch
+
+# Define compiler
+CC = g++
 
 # Here's where you'd want to define any #define with -DVariableName
 CFLAGS += $(INCDIRS) -O2 -g
