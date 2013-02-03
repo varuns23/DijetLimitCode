@@ -30,11 +30,16 @@ public:
   virtual ~RandomPrior();
 
   double getRandom(void) const;
+  double getXmin(void) const;
+  double getXmax(void) const;
+  double eval(double x) const;
+  int getPriorType(void) const;
 
 private:
 
   TF1* priorfcn_;
   static int counter_;
+  int priorType_;
 };
 
 

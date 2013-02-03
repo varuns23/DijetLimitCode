@@ -129,6 +129,9 @@ double gamma(double *x, double *par)
 
 RandomPrior::RandomPrior(int priorType, double median, double variance, double min, double max)
 {
+  // set the prior type
+  priorType_=priorType;
+
   // create function
   std::ostringstream oss;
   if(priorType==1) // Lognormal
@@ -168,4 +171,24 @@ RandomPrior::~RandomPrior()
 double RandomPrior::getRandom(void) const
 {
   return priorfcn_->GetRandom();
+}
+
+double RandomPrior::getXmin(void) const
+{
+  return priorfcn_->GetXmin();
+}
+
+double RandomPrior::getXmax(void) const
+{
+  return priorfcn_->GetXmax();
+}
+
+double RandomPrior::eval(double x) const
+{
+  return priorfcn_->Eval(x);
+}
+
+int RandomPrior::getPriorType(void) const
+{
+  return priorType_;
 }
