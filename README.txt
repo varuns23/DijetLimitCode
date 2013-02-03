@@ -9,10 +9,27 @@ Please refer to https://twiki.cern.ch/twiki/bin/view/CMS/DijetLimitCode for more
    cd CMSSW_5_3_8_MyAnalysis/test
    cmsenv
 
-   NOTE: You can skip this step if you already have your working area set up.
+   NOTE: You can skip this step if you already have your working area set up. Nevertheless,
+         you will still need to initialize the CMSSW environment by calling 'cmsenv'.
          CMSSW_5_3_8 is used just as an example. Any CMSSW_5_3_X release should work.
 
-2) Checkout the package:
+2) Install BAT (Bayesian Analysis Toolkit):
+
+   wget http://www.mppmu.mpg.de/bat/source/BAT-0.9.2.tar.gz
+   tar xvzf BAT-0.9.2.tar.gz
+   cd BAT-0.9.2
+   ./configure --prefix=$HOME
+   make
+   make install
+
+   setenv BATINSTALLDIR    $HOME
+   setenv LD_LIBRARY_PATH  {$LD_LIBRARY_PATH}:{$BATINSTALLDIR}/lib
+   setenv CPATH            {$BATINSTALLDIR}/include
+
+   NOTE: BAT needs to be installed only once. However, every time before compiling or using
+         the limit code, you will need to initialize the above environment variables.
+
+3) Checkout the limit code package:
 
    cvs co -d LimitCode UserCode/ferencek/MyAnalysis/tools/LimitCode
    cd LimitCode
@@ -42,11 +59,11 @@ Please refer to https://twiki.cern.ch/twiki/bin/view/CMS/DijetLimitCode for more
 
    cp -i src/EXAMPLECODE.cc stats.cc
 
-3) Compile the code:
+4) Compile the code:
 
    make
 
-4) Run the code:
+5) Run the code:
 
    ./stats MASS BR ResShapeType
 
