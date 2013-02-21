@@ -159,7 +159,7 @@ double INTEGRAL(double *x0, double *xf, double *par)
   double d=0.166666667*dx*dx*dx*a*( (p1-2)*(p1-1)*p1/(x-1)/(x-1)/(x-1) - 3*(p1-1)*p1*(p2+2*p3*logx)/(x-1)/(x-1)/x - (1+p2+2*p3*logx)*(p2*(2+p2) - 6*p3 + 4*p3*logx*(1+p2*p3*logx))/x/x/x + 3*p1*(p2+p2*p2-2*p3+2*p3*logx*(1+2*p2+2*p3*logx))/(x-1)/x/x );
 
   double bkg=(xf[0]-x0[0])*p0*(a+0.375*(b+c+d)+0.375*(2*b+4*c+8*d)+0.125*(3*b+9*c+27*d));
-  if(bkg<0.) bkg=0.0000001;
+  if(bkg<0.) bkg=1e-7;
 
   if(xs==0.0) return bkg;
 
@@ -169,7 +169,7 @@ double INTEGRAL(double *x0, double *xf, double *par)
   int bin2=HISTCDF->GetXaxis()->FindBin(xprime0);
   if(bin1<1) bin1=1;
   if(bin1>HISTCDF->GetNbinsX()) bin1=HISTCDF->GetNbinsX();
-  if(bin2<1) bin1=1;
+  if(bin2<1) bin2=1;
   if(bin2>HISTCDF->GetNbinsX()) bin2=HISTCDF->GetNbinsX();
   double sig=xs*lumi*(HISTCDF->GetBinContent(bin1)-HISTCDF->GetBinContent(bin2));
 
@@ -274,7 +274,7 @@ int main(int argc, char* argv[])
 
   // perform a signal+background fit possibly followed by a background-only fit with a fixed but non-zero signal
   for(int i=0; i<NPARS; i++) if(PAR_TYPE[i]>=2 || PAR_MIN[i]==PAR_MAX[i]) fit_data->fixParameter(i);
-  if(BonlyFitForSyst) { fit_data->doFit(); fit_data->fixParameter(0); }
+  if(BonlyFitForSyst) { fit_data->doFit(); if(fit_data.getFitStatus().find("CONVERGED")==string::npos) { fit_data.fixParameter(POIINDEX); fit_data.setParameter(POIINDEX, 0.0); } else fit_data.fixParameter(POIINDEX); }
   fit_data->doFit(&COV_MATRIX[0][0], NPARS);
   cout << "Data fit status: " << fit_data->getFitStatus() << endl;
   fit_data->fixParameter(0); // a parameter needs to be fixed before its value can be changed
@@ -340,7 +340,7 @@ int main(int argc, char* argv[])
 
     // perform a signal+background fit possibly followed by a background-only fit with a fixed but non-zero signal
     for(int i=0; i<NPARS; i++) if(PAR_TYPE[i]>=2 || PAR_MIN[i]==PAR_MAX[i]) fit->fixParameter(i);
-    if(BonlyFitForSyst) { fit->doFit(); fit->fixParameter(0); }
+    if(BonlyFitForSyst) { fit->doFit(); if(fit.getFitStatus().find("CONVERGED")==string::npos) { fit.fixParameter(POIINDEX); fit.setParameter(POIINDEX, 0.0); } else fit.fixParameter(POIINDEX); }
     fit->doFit(&COV_MATRIX[0][0], NPARS);
     if(fit->getFitStatus().find("CONVERGED")==string::npos) continue; // skip the PE if the fit did not converge
     fit->fixParameter(0); // a parameter needs to be fixed before its value can be changed
