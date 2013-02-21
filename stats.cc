@@ -263,7 +263,7 @@ int main(int argc, char* argv[])
 
   // perform a signal+background fit possibly followed by a background-only fit with a fixed but non-zero signal
   for(int i=0; i<NPARS; i++) if(PAR_TYPE[i]>=2 || PAR_MIN[i]==PAR_MAX[i]) fit_data.fixParameter(i);
-  if(BonlyFitForSyst) { fit_data.doFit(); if(fit_data.getFitStatus().find("CONVERGED")==string::npos) { fit_data.fixParameter(POIINDEX); fit_data.setParameter(POIINDEX, 0.0); } else fit_data.fixParameter(POIINDEX); }
+  if(BonlyFitForSyst) { fit_data.doFit(); if(fit_data.getFitStatus().find("CONVERGED")==string::npos) { fit_data.fixParameter(0); fit_data.setParameter(0, 0.0); } else fit_data.fixParameter(0); }
   fit_data.doFit(&COV_MATRIX[0][0], NPARS);
   cout << "Data fit status: " << fit_data.getFitStatus() << endl;
   fit_data.fixParameter(0); // a parameter needs to be fixed before its value can be changed
@@ -315,7 +315,7 @@ int main(int argc, char* argv[])
 
     // perform a signal+background fit possibly followed by a background-only fit with a fixed but non-zero signal
     for(int i=0; i<NPARS; i++) if(PAR_TYPE[i]>=2 || PAR_MIN[i]==PAR_MAX[i]) fit.fixParameter(i);
-    if(BonlyFitForSyst) { fit.doFit(); if(fit.getFitStatus().find("CONVERGED")==string::npos) { fit.fixParameter(POIINDEX); fit.setParameter(POIINDEX, 0.0); } else fit.fixParameter(POIINDEX); }
+    if(BonlyFitForSyst) { fit.doFit(); if(fit.getFitStatus().find("CONVERGED")==string::npos) { fit.fixParameter(0); fit.setParameter(0, 0.0); } else fit.fixParameter(0); }
     fit.doFit(&COV_MATRIX[0][0], NPARS);
     if(fit.getFitStatus().find("CONVERGED")==string::npos) continue; // skip the PE if the fit did not converge
     fit.fixParameter(0); // a parameter needs to be fixed before its value can be changed
