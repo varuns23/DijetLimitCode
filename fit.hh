@@ -3,11 +3,12 @@
 
 #include <map>
 #include <TMinuit.h>
+#include <TRandom3.h>
 
 class TGraph;
-class TRandom3;
 class TF1;
 class TH1D;
+class RandomPrior;
 
 typedef double (*integral_ptr_t)(double*, double*, double*);
 
@@ -22,6 +23,7 @@ public:
   // setters
   void setData(TH1D* hist) { data_=hist; }
   void setFunctionIntegral(integral_ptr_t fcnintegral) { functionIntegral_=fcnintegral; }
+  void setRandomSeed(unsigned int seed) { rand_->SetSeed(seed); }
 
   // getters
   bool callLimitReached() { return callLimitReached_; }
@@ -76,14 +78,15 @@ private:
 
   static void nll(int &, double*, double&, double*, int);
   static Fitter* theFitter_;
-  static TRandom3* rand_;
 
+  TRandom3* rand_;
   TMinuit minuit_;
   integral_ptr_t functionIntegral_;
   TH1D* data_;
   int printlevel_;
   int strategy_;
   std::map<int, int> parameterIsNuisance_;
+  std::map<int, RandomPrior*> priors_;  // nuisance parameter priors
   double *parameters_;
   int poiIndex_;
 
@@ -100,7 +103,6 @@ private:
   // calculate the CLs
   std::pair<int, int> calculateCLs_(double poiVal, std::vector<double>& CLb, std::vector<double>& CLsb);
 
- 
 };
 
 #endif

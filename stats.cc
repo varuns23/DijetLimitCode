@@ -281,6 +281,7 @@ int main(int argc, char* argv[])
   eigenValues.Sqrt();
   //eigenValues.Print();
   eigenVectors = eigen_data.GetEigenVectors();
+  //eigenVectors.Print();
 
   fit_data.setParLimits(0, 0.0, PAR_MAX[0]); // for the posterior calculation, the signal xs has to be positive
   TGraph* post_data=fit_data.calculatePosterior(NSAMPLES);

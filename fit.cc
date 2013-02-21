@@ -6,7 +6,6 @@
 #include <TF1.h>
 #include <TMath.h>
 #include <TH1D.h>
-#include <TRandom3.h>
 #include <TGraph.h>
 
 #include "fit.hh"
@@ -14,8 +13,8 @@
 #include "statistics.hh"
 
 Fitter* Fitter::theFitter_;
-TRandom3* Fitter::rand_;
 
+// ---------------------------------------------------------
 Fitter::Fitter()
 {
   data_=0;
@@ -32,6 +31,7 @@ Fitter::Fitter()
   parRangeSet_=false;
 }
 
+// ---------------------------------------------------------
 Fitter::Fitter(TH1D* data, integral_ptr_t functionIntegral, int maxpar) :
 minuit_(maxpar)
 {
@@ -49,11 +49,16 @@ minuit_(maxpar)
   parRangeSet_=false;
 }
 
+// ---------------------------------------------------------
 Fitter::~Fitter()
 {
   if(parameters_) delete[] parameters_;
+
+  // remove nuisance parameter priors
+  for(std::map<int, RandomPrior*>::const_iterator it=priors_.begin(); it!=priors_.end(); ++it) delete it->second;
 }
 
+// ---------------------------------------------------------
 void Fitter::doFit(void)
 {
   // setup the fitter so the information can be retrieved by nll
@@ -76,6 +81,7 @@ void Fitter::doFit(void)
   return;
 }
 
+// ---------------------------------------------------------
 void Fitter::doFit(double* emat, int ndim)
 {
   // setup the fitter so the information can be retrieved by nll
@@ -99,6 +105,7 @@ void Fitter::doFit(double* emat, int ndim)
   return;
 }
 
+// ---------------------------------------------------------
 TH1D* Fitter::calcPull(const char* name)
 {
   const double alpha = 1 - 0.6827;
@@ -133,6 +140,7 @@ TH1D* Fitter::calcPull(const char* name)
   return hPull;
 }
 
+// ---------------------------------------------------------
 TH1D* Fitter::calcDiff(const char* name)
 {
   TH1D* hDiff=dynamic_cast<TH1D*>(data_->Clone(name));
@@ -158,6 +166,7 @@ TH1D* Fitter::calcDiff(const char* name)
   return hDiff;
 }
 
+// ---------------------------------------------------------
 int Fitter::setParameter(int parno, double value)
 {
   int err;
@@ -169,6 +178,7 @@ int Fitter::setParameter(int parno, double value)
   return err;
 }
 
+// ---------------------------------------------------------
 int Fitter::setParLimits(int parno, double loLimit, double hiLimit)
 {
   int err;
@@ -181,6 +191,7 @@ int Fitter::setParLimits(int parno, double loLimit, double hiLimit)
   return err;
 }
 
+// ---------------------------------------------------------
 double Fitter::getParameter(int parno) const
 {
   double val, err;
@@ -188,6 +199,7 @@ double Fitter::getParameter(int parno) const
   return val;
 }
 
+// ---------------------------------------------------------
 double Fitter::getParError(int parno) const
 {
   double val, err;
@@ -195,6 +207,7 @@ double Fitter::getParError(int parno) const
   return err;
 }
 
+// ---------------------------------------------------------
 void Fitter::getParLimits(int parno, double &loLimit, double &hiLimit) const
 {
   TString _name;
@@ -204,6 +217,7 @@ void Fitter::getParLimits(int parno, double &loLimit, double &hiLimit) const
   return;
 }
 
+// ---------------------------------------------------------
 double* Fitter::getParameters(void)
 {
   // remove what is there
@@ -220,6 +234,7 @@ double* Fitter::getParameters(void)
   return parameters_;
 }
 
+// ---------------------------------------------------------
 int Fitter::defineParameter(int parno, const char *name, double value, double error, double lo, double hi, int isNuisance)
 {
   parameterIsNuisance_[parno]=isNuisance;
@@ -228,6 +243,7 @@ int Fitter::defineParameter(int parno, const char *name, double value, double er
   return minuit_.DefineParameter(parno, name, value, error, lo, hi);
 }
 
+// ---------------------------------------------------------
 TGraph* Fitter::calculatePosterior(int nSamples)
 {
   // we need a parameter of index defined
@@ -300,6 +316,7 @@ TGraph* Fitter::calculatePosterior(int nSamples)
   return graph;
 }
 
+// ---------------------------------------------------------
 double Fitter::evalNLL(void)
 {
   Fitter::theFitter_=this;
@@ -309,6 +326,7 @@ double Fitter::evalNLL(void)
   return f;
 }
 
+// ---------------------------------------------------------
 double Fitter::histError(double val)
 {
   const double alpha = 1 - 0.6827;
@@ -318,6 +336,7 @@ double Fitter::histError(double val)
   else return sqrt(val); // for val>25 error bars with correct coverage are essentially symmetric
 }
 
+// ---------------------------------------------------------
 void Fitter::nll(int &, double *, double &f, double *par, int)
 {
   assert(Fitter::theFitter_);
@@ -339,6 +358,7 @@ void Fitter::nll(int &, double *, double &f, double *par, int)
   return;
 }
 
+// ---------------------------------------------------------
 TH1D* Fitter::makePseudoData(const char* name, double* parameters)
 {
   if(!parameters) parameters=getParameters();
@@ -358,7 +378,7 @@ TH1D* Fitter::makePseudoData(const char* name, double* parameters)
   return hData;
 }
 
-
+// ---------------------------------------------------------
 void Fitter::evaluateForPosterior(double lo, double mid, double hi, double nllNormalization, std::map<double, double>& fcnEval_)
 {
   if((nCalls_++)>1000) {
@@ -408,10 +428,10 @@ void Fitter::evaluateForPosterior(double lo, double mid, double hi, double nllNo
 
   // for debugging
   //std::cout << "nCalls: " << nCalls_ << std::endl
-  //         << "nllNormalization: " << nllNormalization << std::endl
-  //         << "lo, mid, high: " << lo << ", " << mid << ", " << hi << std::endl
-  //         << "loval, midval, hival: " << loVal << ", " << midVal << ", " << hiVal << std::endl
-  //         << "maximumValX, maximumVal: " << maximumValX << ", " << maximumVal << std::endl << std::endl;
+  //          << "nllNormalization: " << nllNormalization << std::endl
+  //          << "lo, mid, high: " << lo << ", " << mid << ", " << hi << std::endl
+  //          << "loval, midval, hival: " << loVal << ", " << midVal << ", " << hiVal << std::endl
+  //          << "maximumValX, maximumVal: " << maximumValX << ", " << maximumVal << std::endl << std::endl;
 
   if(fabs(loVal-midVal)>0.04*maximumVal || fabs(hiVal-midVal)>0.04*maximumVal) {
     if(fabs(hi-mid)/fabs(hi)>0.01 && fabs(hi-mid)/fabs(poiBestFit_)>0.01 && fabs(hi-mid)>poiUserError_) evaluateForPosterior(mid, 0.5*(mid+hi), hi, nllNormalization, fcnEval_); // important to go to the mid-high range first to get a nicely falling posterior tail in case the number of calls limit is reached
@@ -421,6 +441,7 @@ void Fitter::evaluateForPosterior(double lo, double mid, double hi, double nllNo
   return;
 }
 
+// ---------------------------------------------------------
 double Fitter::computeLikelihoodWithSystematics(double poiVal, double nllNormalization)
 {
   // setup parameters
@@ -436,71 +457,74 @@ double Fitter::computeLikelihoodWithSystematics(double poiVal, double nllNormali
   }
 
   // setup nuisance parameter priors
-  std::map<int, RandomPrior*> priors;
-  for(std::map<int, int>::const_iterator it=parameterIsNuisance_.begin(); it!=parameterIsNuisance_.end(); ++it) {
-    if(it->second>0) {
-      assert(it->first!=poiIndex_);
-      double parval, parerr;
-      double lolim, uplim;
-      // find the optimal integration range for nuisance parameters with uniform priors
-      if(it->second>=4 && !parRangeSet_)
-      {
-        getParameter(it->first, parval, parerr);
-        getParLimits(it->first, lolim, uplim);
-        double tempval=parval, tempuplim=parval, templolim=parval;
-        bool uplimFound=false, lolimFound=false;
-        pars[poiIndex_]=poiBestFit_; // here we need to use the best-fit value in order to probe the posterior likelihood around its maximum
+  if( priors_.size()==0 && parameterIsNuisance_.size()>0 )
+  {
+    for(std::map<int, int>::const_iterator it=parameterIsNuisance_.begin(); it!=parameterIsNuisance_.end(); ++it)
+    {
+      if(it->second>0) {
+        assert(it->first!=poiIndex_);
+        double parval, parerr;
+        double lolim, uplim;
+        // find the optimal integration range for nuisance parameters with uniform priors
+        if(it->second>=4 && !parRangeSet_)
+        {
+          getParameter(it->first, parval, parerr);
+          getParLimits(it->first, lolim, uplim);
+          double tempval=parval, tempuplim=parval, templolim=parval;
+          bool uplimFound=false, lolimFound=false;
+          pars[poiIndex_]=poiBestFit_; // here we need to use the best-fit value in order to probe the posterior likelihood close to its maximum
 
-        while(tempval<=uplim)
-        {
-          pars[it->first]=tempval;
-          nll(a,0,f,pars,0);
-          if(TMath::Exp(-f+nllNormalization)<1.E-3)
+          while(tempval<=uplim)
           {
-            tempuplim=tempval+0.5*(tempval-parval);
-            uplimFound=true;
-            break;
+            pars[it->first]=tempval;
+            nll(a,0,f,pars,0);
+            if(TMath::Exp(-f+nllNormalization)<1.E-3)
+            {
+              tempuplim=tempval+1.0*(tempval-parval);
+              uplimFound=true;
+              break;
+            }
+            tempval=tempval+parerr;
           }
-          tempval=tempval+parerr;
-        }
-        tempval=parval;
-        while(tempval>=lolim)
-        {
-          pars[it->first]=tempval;
-          nll(a,0,f,pars,0);
-          if(TMath::Exp(-f+nllNormalization)<1.E-3)
+          tempval=parval;
+          while(tempval>=lolim)
           {
-            templolim=tempval-0.5*(parval-tempval);
-            lolimFound=true;
-            break;
+            pars[it->first]=tempval;
+            nll(a,0,f,pars,0);
+            if(TMath::Exp(-f+nllNormalization)<1.E-3)
+            {
+              templolim=tempval-1.0*(parval-tempval);
+              lolimFound=true;
+              break;
+            }
+            tempval=tempval-parerr;
           }
-          tempval=tempval-parerr;
-        }
 
-        if((!uplimFound || tempuplim>uplim) || (!lolimFound || templolim<lolim))
-        {
-          std::cout << "WARNING! The integration range for parameter " << (it->first+1) << " [" << lolim << ", " << uplim << "] is likely too narrow. Please extend the range." << std::endl;
-          priors[it->first]=new RandomPrior(it->second, parval, parerr, lolim, uplim);
+          if((!uplimFound || tempuplim>uplim) || (!lolimFound || templolim<lolim))
+          {
+            std::cout << "WARNING! The integration range for parameter " << (it->first+1) << " [" << lolim << ", " << uplim << "] is likely too narrow. Please extend the range." << std::endl;
+            priors_[it->first]=new RandomPrior(it->second, parval, parerr, lolim, uplim);
+          }
+          else
+          {
+            double maxdiff = std::max(tempuplim-parval,parval-templolim);
+            templolim = parval - maxdiff;
+            tempuplim = parval + maxdiff;
+            std::cout << "The integration range for parameter " << (it->first+1) << " set to [" << templolim << ", " << tempuplim << "]" << std::endl;
+            setParLimits(it->first, templolim, tempuplim);
+            priors_[it->first]=new RandomPrior(it->second, parval, parerr, templolim, tempuplim);
+          }
+
+          // return the parameters to their original values
+          pars[it->first]=parval;
+          pars[poiIndex_]=poiVal;
         }
         else
         {
-          double maxdiff = std::max(tempuplim-parval,parval-templolim);
-          templolim = parval - maxdiff;
-          tempuplim = parval + maxdiff;
-          std::cout << "The integration range for parameter " << (it->first+1) << " set to [" << templolim << ", " << tempuplim << "]" << std::endl;
-          setParLimits(it->first, templolim, tempuplim);
-          priors[it->first]=new RandomPrior(it->second, parval, parerr, templolim, tempuplim);
+          getParameter(it->first, parval, parerr);
+          getParLimits(it->first, lolim, uplim);
+          priors_[it->first]=new RandomPrior(it->second, parval, parerr, lolim, uplim);
         }
-
-        // return the parameters to their original values
-        pars[it->first]=parval;
-        pars[poiIndex_]=poiVal;
-      }
-      else
-      {
-        getParameter(it->first, parval, parerr);
-        getParLimits(it->first, lolim, uplim);
-        priors[it->first]=new RandomPrior(it->second, parval, parerr, lolim, uplim);
       }
     }
   }
@@ -509,30 +533,18 @@ double Fitter::computeLikelihoodWithSystematics(double poiVal, double nllNormali
   // calculate average likelihood value over nuisance parameters
   double total=0.0;
   for(int sample=0; sample<=nSamples_; sample++) {
-    for(std::map<int, RandomPrior*>::const_iterator it=priors.begin(); it!=priors.end(); ++it)
+    for(std::map<int, RandomPrior*>::const_iterator it=priors_.begin(); it!=priors_.end(); ++it)
       pars[it->first]=it->second->getRandom();
     nll(a,0,f,pars,0);
     double like=TMath::Exp(-f+nllNormalization);
 
-    //if(like>10) { // for debugging
-    //  int nPars=minuit_.GetNumPars();
-    //  std::cout << "sample=" << sample << std::endl;
-    //  for(int i=0; i<nPars; i++) {
-    //    std::cout << "pars[" << i << "]=" << pars[i] << std::endl;
-    //  }
-    //  std::cout << "like=" << like << "; f=" << f << "; norm=" << nllNormalization << std::endl;
-    //  assert(0);
-    //}
-
     total+=like;
   }
-
-  // remove nuisance parameter priors
-  for(std::map<int, RandomPrior*>::const_iterator it=priors.begin(); it!=priors.end(); ++it) delete it->second;
 
   return total/nSamples_;
 }
 
+// ---------------------------------------------------------
 double Fitter::calculateUpperBoundWithCLs(int nSamples, double alpha)
 {
   // we need a parameter of index defined
@@ -624,6 +636,7 @@ double Fitter::calculateUpperBoundWithCLs(int nSamples, double alpha)
   return poiVal;
 }
 
+// ---------------------------------------------------------
 std::pair<int, int> Fitter::calculateCLs_(double poiVal, std::vector<double>& CLb, std::vector<double>& CLsb)
 {
   // setup parameters
@@ -632,15 +645,18 @@ std::pair<int, int> Fitter::calculateCLs_(double poiVal, std::vector<double>& CL
   double *pars=getParameters();
 
   // setup nuisance parameter priors
-  std::map<int, RandomPrior*> priors;
-  for(std::map<int, int>::const_iterator it=parameterIsNuisance_.begin(); it!=parameterIsNuisance_.end(); ++it) {
-    if(it->second>0) {
-      assert(it->first!=poiIndex_);
-      double parval, parerr;
-      double lolim, uplim;
-      getParameter(it->first, parval, parerr);
-      getParLimits(it->first, lolim, uplim);
-      priors[it->first]=new RandomPrior(it->second, parval, parerr, lolim, uplim);
+  if( priors_.size()==0 && parameterIsNuisance_.size()>0 )
+  {
+    for(std::map<int, int>::const_iterator it=parameterIsNuisance_.begin(); it!=parameterIsNuisance_.end(); ++it)
+    {
+      if(it->second>0) {
+        assert(it->first!=poiIndex_);
+        double parval, parerr;
+        double lolim, uplim;
+        getParameter(it->first, parval, parerr);
+        getParLimits(it->first, lolim, uplim);
+        priors_[it->first]=new RandomPrior(it->second, parval, parerr, lolim, uplim);
+      }
     }
   }
 
@@ -652,7 +668,7 @@ std::pair<int, int> Fitter::calculateCLs_(double poiVal, std::vector<double>& CL
     TH1D* CLSB_pdata;
     TH1D* CLB_pdata;
     if(i>0) {
-      for(std::map<int, RandomPrior*>::const_iterator it=priors.begin(); it!=priors.end(); ++it)
+      for(std::map<int, RandomPrior*>::const_iterator it=priors_.begin(); it!=priors_.end(); ++it)
 	pars[it->first]=it->second->getRandom();
 
       pars[poiIndex_]=poiVal;
@@ -691,9 +707,6 @@ std::pair<int, int> Fitter::calculateCLs_(double poiVal, std::vector<double>& CL
       delete CLB_pdata;
     }
   }
-
-  // remove nuisance parameter priors
-  for(std::map<int, RandomPrior*>::const_iterator it=priors.begin(); it!=priors.end(); ++it) delete it->second;
 
   // set the data back
   data_=theData;
