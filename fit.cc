@@ -22,7 +22,7 @@ Fitter::Fitter() : BCModel()
   printlevel_=3;
   strategy_=2;
   minuit_.SetErrorDef(0.5); // likelihood
-  if(!rand_) rand_=new TRandom3(31415);
+  rand_=new TRandom3(31415);
   parameters_=0;
   poiIndex_=-1;
   callLimitReached_=false;
@@ -41,7 +41,7 @@ Fitter::Fitter(TH1D* data, integral_ptr_t functionIntegral, int maxpar) : BCMode
   printlevel_=3;
   strategy_=2;
   minuit_.SetErrorDef(0.5); // likelihood
-  if(!rand_) rand_=new TRandom3(31415);
+  rand_=new TRandom3(31415);
   parameters_=0;
   poiIndex_=-1;
   callLimitReached_=false;
@@ -56,6 +56,8 @@ Fitter::Fitter(TH1D* data, integral_ptr_t functionIntegral, int maxpar) : BCMode
 Fitter::~Fitter()
 {
   if(parameters_) delete[] parameters_;
+
+  delete rand_;
 
   // remove nuisance parameter priors
   for(std::map<int, RandomPrior*>::const_iterator it=priors_.begin(); it!=priors_.end(); ++it) delete it->second;
