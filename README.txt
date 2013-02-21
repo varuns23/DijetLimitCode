@@ -9,15 +9,43 @@ Please refer to https://twiki.cern.ch/twiki/bin/view/CMS/DijetLimitCode for more
    cd CMSSW_5_3_8_MyAnalysis/test
    cmsenv
 
-   NOTE: You can skip this step if you already have your working area set up.
+   NOTE: You can skip this step if you already have your working area set up. Nevertheless,
+         you will still need to initialize the CMSSW environment by calling 'cmsenv'.
          CMSSW_5_3_8 is used just as an example. Any CMSSW_5_3_X release should work.
 
-2) Checkout the package:
+2) Install BAT (Bayesian Analysis Toolkit):
+
+   NOTE: This step is only needed if you plan to use MCMC. Otherwise, proceed to step 3).
+
+   wget http://www.mppmu.mpg.de/bat/source/BAT-0.9.2.tar.gz
+   tar xvzf BAT-0.9.2.tar.gz
+   cd BAT-0.9.2
+   ./configure --prefix=$HOME
+   make
+   make install
+
+   setenv BATINSTALLDIR    $HOME
+   setenv LD_LIBRARY_PATH  {$LD_LIBRARY_PATH}:{$BATINSTALLDIR}/lib
+   setenv CPATH            {$BATINSTALLDIR}/include
+
+   NOTE: BAT needs to be installed only once. However, every time before compiling or using
+         the limit code, you will need to initialize the above environment variables.
+
+3) Checkout the limit code package:
+
+   If you plan to use MCMC
 
    cvs co -d LimitCode UserCode/ferencek/MyAnalysis/tools/LimitCode
+
+   else
+
+   cvs co -r NoMCMC -d LimitCode UserCode/ferencek/MyAnalysis/tools/LimitCode
+
+   Enter the package directory:
+
    cd LimitCode
 
-   The package has the following content
+   The package has the following contents:
 
    Data_and_ResonanceShapes/
    python/
@@ -33,20 +61,16 @@ Please refer to https://twiki.cern.ch/twiki/bin/view/CMS/DijetLimitCode for more
    statistics.hh
    stats.cc
 
-   The src/ subdirectory contains some example limit-setting code and the python/ subdirectory
-   contains example scripts that run the code and produce final plots.
+   The src/ subdirectory contains some old limit-setting code and the python/ subdirectory
+   contains scripts that run the code and produce various limit plots.
 
-   To start developing your own code, you can either starts directly from the stats.cc file or
-   you can start from one of the example files in the src/ subdirectory by copying it to the
-   current directory.
+   To start developing your own code, you can start from the stats.cc file.
 
-   cp -i src/EXAMPLECODE.cc stats.cc
-
-3) Compile the code:
+4) Compile the code:
 
    make
 
-4) Run the code:
+5) Run the code:
 
    ./stats MASS BR ResShapeType
 
