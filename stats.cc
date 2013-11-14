@@ -32,14 +32,16 @@ using namespace std;
 // magic numbers
 ////////////////////////////////////////////////////////////////////////////////
 
-// number of pseudoexperiments (when greater than 0, expected limit with +/- 1 and 2 sigma bands is calculated)
-const int NPES=200; // 200 (the more pseudo-experiments, the better. However, 200 is a reasonable choice)
-
-// number of samples of nuisance parameters for Bayesian MC integration (when greater than 0, systematic uncertanties are included in the limit calculation)
-const int NSAMPLES=0; // 5000 (larger value is better but it also slows down the code. 5000 is a reasonable compromise between the speed and precision)
-
 // use Markov chain Monte Carlo (MCMC) to marginalize nuisance parameters
 const int useMCMC = 0;
+// IMPORTANT: With useMCMC = 1, the systematic uncertanties are included in the limit calculation by default. Use the PAR_NUIS[] array below to control what uncertainties are included
+
+// number of samples of nuisance parameters for Bayesian MC integration
+const int NSAMPLES=0; // 10000 (larger value is better but it also slows down the code. 10000 is a reasonable compromise between the speed and precision)
+// IMPORTANT: With useMCMC = 0, the systematic uncertanties are included in the limit calculation only when NSAMPLES is greater than 0. Use the PAR_NUIS[] array below to control what uncertainties are included
+
+// number of pseudoexperiments (when greater than 0, expected limit with +/- 1 and 2 sigma bands is calculated)
+const int NPES=200; // 200 (the more pseudo-experiments, the better. However, 200 is a reasonable choice)
 
 // set the factor that defines the upper bound for the signal xs used by the MCMC as xsUpperBoundFactor*stat-only_limit
 const double xsUpperBoundFactor=3.0;
@@ -105,7 +107,7 @@ const bool BonlyFitForSyst = 1;
 // shift in the counter used to extract the covariance matrix
 int shift = 1;
 
-// branching fraction 
+// branching fraction
 double BR = 1.;
 
 // resonance shape type
@@ -274,7 +276,7 @@ int main(int argc, char* argv[])
 
   // perform a signal+background fit possibly followed by a background-only fit with a fixed but non-zero signal
   for(int i=0; i<NPARS; i++) if(PAR_TYPE[i]>=2 || PAR_MIN[i]==PAR_MAX[i]) fit_data->fixParameter(i);
-  if(BonlyFitForSyst) { fit_data->doFit(); if(fit_data.getFitStatus().find("CONVERGED")==string::npos) { fit_data.fixParameter(0); fit_data.setParameter(0, 0.0); } else fit_data.fixParameter(0); }
+  if(BonlyFitForSyst) { fit_data->doFit(); if(fit_data->getFitStatus().find("CONVERGED")==string::npos) { fit_data->fixParameter(0); fit_data->setParameter(0, 0.0); } else fit_data->fixParameter(0); }
   fit_data->doFit(&COV_MATRIX[0][0], NPARS);
   cout << "Data fit status: " << fit_data->getFitStatus() << endl;
   fit_data->fixParameter(0); // a parameter needs to be fixed before its value can be changed
@@ -340,7 +342,7 @@ int main(int argc, char* argv[])
 
     // perform a signal+background fit possibly followed by a background-only fit with a fixed but non-zero signal
     for(int i=0; i<NPARS; i++) if(PAR_TYPE[i]>=2 || PAR_MIN[i]==PAR_MAX[i]) fit->fixParameter(i);
-    if(BonlyFitForSyst) { fit->doFit(); if(fit.getFitStatus().find("CONVERGED")==string::npos) { fit.fixParameter(0); fit.setParameter(0, 0.0); } else fit.fixParameter(0); }
+    if(BonlyFitForSyst) { fit->doFit(); if(fit->getFitStatus().find("CONVERGED")==string::npos) { fit->fixParameter(0); fit->setParameter(0, 0.0); } else fit->fixParameter(0); }
     fit->doFit(&COV_MATRIX[0][0], NPARS);
     if(fit->getFitStatus().find("CONVERGED")==string::npos) continue; // skip the PE if the fit did not converge
     fit->fixParameter(0); // a parameter needs to be fixed before its value can be changed
