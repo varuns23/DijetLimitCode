@@ -1,0 +1,20 @@
+universe = vanilla
+
+Executable = /uscms_data/d3/gurpinar/work/Dijet/CMSSW_5_3_7/src/limit/LimitCode/run_limits_condor.sh
+
+Requirements = Memory >= 199 &&OpSys == "LINUX"&& (Arch != "DUMMY" )
+Should_Transfer_Files = YES
+WhenToTransferOutput = ON_EXIT
+
+#Transfer_Input_Files = file1, file2
+Output = /uscmst1b_scratch/lpc1/3DayLifetime/gurpinar/limit/condor_$(Cluster)_$(Process).stdout
+Error = /uscmst1b_scratch/lpc1/3DayLifetime/gurpinar/limit/condor_$(Cluster)_$(Process).stderr
+Log = /uscmst1b_scratch/lpc1/3DayLifetime/gurpinar/limit/condor_$(Cluster)_$(Process).log
+notify_user = NO
+#Arguments = $(Process) 0.5 gg /uscms_data/d3/gurpinar/work/Dijet/CMSSW_5_3_7/src/
+#Queue 9
+#Arguments = $(Process) 0 qg /uscms_data/d3/gurpinar/work/Dijet/CMSSW_5_3_7/src/
+Arguments = $(Process) 1 qq /uscms_data/d3/gurpinar/work/Dijet/CMSSW_5_3_7/src/
+Queue 20
+#Queue 50
+#Queue 57

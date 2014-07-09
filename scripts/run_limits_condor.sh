@@ -16,14 +16,16 @@ eval `scramv1 runtime -sh`
 cd -
 
 
-let "MASS = $CONDOR_PROCESS*100 + 1000"
+let "MASS = $CONDOR_PROCESS*250 + 1000"
 LOG=`echo "stats_${MASS}_${BR}_${FINAL_STATE}.log"`
 
 echo "Running: stats $MASS $BR $FINAL_STATE > $LOG 2>&1"
-/uscms/home/ferencek/MyAnalysis/MyAnalyzer/test/LimitCode/stats $MASS $BR $FINAL_STATE > $LOG 2>&1
+/uscms_data/d3/gurpinar/work/Dijet/CMSSW_5_3_7/src/limit/LimitCode/stats $MASS $BR $FINAL_STATE > $LOG 2>&1
 exitcode=$?
 
 echo ""
 END_TIME=`/bin/date`
 echo "finished at $END_TIME"
 exit $exitcode
+
+
