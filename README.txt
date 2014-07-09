@@ -6,13 +6,13 @@ Please refer to https://twiki.cern.ch/twiki/bin/view/CMS/DijetLimitCode for more
 1) Set up your CMSSW working area:
 
    setenv SCRAM_ARCH slc5_amd64_gcc462
-   cmsrel CMSSW_5_3_13
-   cd CMSSW_5_3_13/test
+   cmsrel CMSSW_5_3_18
+   cd CMSSW_5_3_18/test
    cmsenv
 
    NOTE: You can skip this step if you already have your working area set up. Nevertheless,
          you will still need to initialize the CMSSW environment by calling 'cmsenv'.
-         CMSSW_5_3_13 is used just as an example. Any CMSSW_5_3_X release should work.
+         CMSSW_5_3_18 is used just as an example. Any CMSSW_5_3_X release should work.
 
 2) Install BAT (Bayesian Analysis Toolkit):
 
@@ -42,8 +42,8 @@ Please refer to https://twiki.cern.ch/twiki/bin/view/CMS/DijetLimitCode for more
    The package has the following contents:
 
    Data_and_ResonanceShapes/
-   python/
-   src/
+   plots/
+   jobs/
    Makefile
    README.txt
    binneddata.cc
@@ -55,8 +55,8 @@ Please refer to https://twiki.cern.ch/twiki/bin/view/CMS/DijetLimitCode for more
    statistics.hh
    stats.cc
 
-   The src/ subdirectory contains some old limit-setting code and the python/ subdirectory
-   contains scripts that run the code and produce various limit plots.
+   The plots/ subdirectory contains some ROOT plotting macros/scripts and the jobs/ subdirectory
+   contains some Condor job submission scripts.
 
    To start developing your own code, you can start from the stats.cc file.
 
@@ -66,9 +66,8 @@ Please refer to https://twiki.cern.ch/twiki/bin/view/CMS/DijetLimitCode for more
 
 5) Run the code:
 
-   ./stats MASS BR ResShapeType
+   ./stats MASS
 
-   where MASS is the resonance mass in GeV, BR is the branching fraction to the final state of interest,
-   and ResShapeType is the resonance shape type. A more concrete example of running the code would be
+   where MASS is the resonance mass in GeV. A more concrete example of running the code would be
 
-   ./stats 2000 1.0 qq
+   ./stats 800

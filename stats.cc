@@ -41,7 +41,10 @@ const int NSAMPLES=0; // 10000 (larger value is better but it also slows down th
 // IMPORTANT: With useMCMC = 0, the systematic uncertanties are included in the limit calculation only when NSAMPLES is greater than 0. Use the PAR_NUIS[] array below to control what uncertainties are included
 
 // number of pseudoexperiments (when greater than 0, expected limit with +/- 1 and 2 sigma bands is calculated)
-const int NPES=200; // 200 (the more pseudo-experiments, the better. However, 200 is a reasonable choice)
+const int NPES=0; // 200 (the more pseudo-experiments, the better. However, 200 is a reasonable choice)
+
+// use 6-parameter background fit function
+const bool use6ParFit = 1;
 
 // set the factor that defines the upper bound for the signal xs used by the MCMC as xsUpperBoundFactor*stat-only_limit
 const double xsUpperBoundFactor=3.0;
@@ -56,34 +59,34 @@ const double LEFTSIDETAIL=0.0;
 const string OUTPUTFILE="stats.root";
 
 // center-of-mass energy
-const double sqrtS = 7000.;
+const double sqrtS = 8000.;
 
 // histogram binning
-const int NBINS=38;
-double BOUNDARIES[NBINS+1] = {  890,  944, 1000, 1058, 1118, 1181, 1246, 1313, 1383, 1455, 1530,
-                               1607, 1687, 1770, 1856, 1945, 2037, 2132, 2231, 2332, 2438, 2546,
-                               2659, 2775, 2895, 3019, 3147, 3279, 3416, 3558, 3704, 3854, 4010,
-                               4171, 4337, 4509, 4686, 4869, 5058 };
+const int NBINS=52;
+double BOUNDARIES[NBINS+1] = {  325,  354,  386,  419,  453,  489,  526,  565,  606,  649,  693,  740,  788,  838,
+                                890,  944, 1000, 1058, 1118, 1181, 1246, 1313, 1383, 1455, 1530, 1607, 1687, 1770,
+                               1856, 1945, 2037, 2132, 2231, 2332, 2438, 2546, 2659, 2775, 2895, 3019, 3147, 3279,
+                               3416, 3558, 3704, 3854, 4010, 4171, 4337, 4509, 4686, 4869, 5058 };
 
 // parameters
 double SIGMASS=0;
-const int NPARS=12;
-const int NBKGPARS=4;
+const int NPARS=16;
+const int NBKGPARS=(use6ParFit ? 6 : 4);
 const int POIINDEX=0; // which parameter is "of interest"
-const char* PAR_NAMES[NPARS]    = { "xs", "lumi",  "jes", "jer",        "p0",        "p1",        "p2",         "p3", "n0", "n1", "n2", "n3" };
-      double PAR_GUESSES[NPARS] = { 1E-6,  4976.,    1.0,   1.0, 3.27713e-01, 8.33753e+00, 5.37123e+00,  4.05975e-02,    0,    0,    0,    0 };
-      double PAR_MIN[NPARS]     = {    0,    0.0,    0.0,   0.0,       -9999,       -9999,       -9999,        -9999, -100, -100, -100, -100 };
-const double PAR_MAX[NPARS]     = {  1E2,  6000.,    2.0,   2.0,        9999,        9999,        9999,         9999,  100,  100,  100,  100 };
-      double PAR_ERR[NPARS]     = { 1E-6,   110., 0.0125,  0.10,      1e-02,        1e-01,       1e-01,        1e-02,    1,    1,    1,    1 };
-const int PAR_TYPE[NPARS]       = {    1,      2,      2,     2,          0,            0,           0,            0,    3,    3,    3,    3 }; // // 1,2 = signal (2 not used in the fit); 0,3 = background (3 not used in the fit)
-const int PAR_NUIS[NPARS]       = {    0,      1,      1,     1,          0,            0,           0,            0,    4,    4,    4,    4 }; // 0 = not varied, >=1 = nuisance parameters with different priors (1 = Lognormal, 2 = Gaussian, 3 = Gamma, >=4 = Uniform)
+string PAR_NAMES[NPARS]   = { "xs",  "lumi",  "jes", "jer",        "p0",        "p1",        "p2",         "p3",        "p4",         "p5", "n0", "n1", "n2", "n3", "n4", "n5" };
+double PAR_GUESSES[NPARS] = { 1E-1,  19000.,    1.0,   1.0, 6.38418e-02, 6.51939e+00, 7.43862e+00,  8.27179e-01, 1.70526e-01,  1.99467e-02,    0,    0,    0,    0,    0,    0 };
+double PAR_MIN[NPARS]     = {    0,     0.0,    0.0,   0.0,       -9999,       -9999,       -9999,        -9999,       -9999,        -9999, -100, -100, -100, -100, -100, -100 };
+double PAR_MAX[NPARS]     = {  1E3,     3E4,    2.0,   2.0,        9999,        9999,        9999,         9999,        9999,         9999,  100,  100,  100,  100,  100,  100 };
+double PAR_ERR[NPARS]     = { 1E-3,    500.,   0.01,  0.10,      1e-02,        1e-01,       1e-01,        1e-02,       1e-02,        1e-03,    1,    1,    1,    1,    1,    1 };
+int PAR_TYPE[NPARS]       = {    1,       2,      2,     2,          0,            0,           0,            0,           0,            0,    3,    3,    3,    3,    3,    3 }; // // 1,2 = signal (2 not used in the fit); 0,3 = background (3 not used in the fit)
+int PAR_NUIS[NPARS]       = {    0,       1,      1,     1,          0,            0,           0,            0,           0,            0,    4,    4,    4,    4,    4,    4 }; // 0 = not varied, >=1 = nuisance parameters with different priors (1 = Lognormal, 2 = Gaussian, 3 = Gamma, >=4 = Uniform)
 
-//const int PAR_NUIS[NPARS]       = {    0,      1,     1,     1,          0,            0,           0,            0,    4,    4,    4,    4 }; // all (same as above)
-//const int PAR_NUIS[NPARS]       = {    0,      1,     0,     0,          0,            0,           0,            0,    0,    0,    0,    0 }; // lumi only
-//const int PAR_NUIS[NPARS]       = {    0,      0,     1,     0,          0,            0,           0,            0,    0,    0,    0,    0 }; // jes only
-//const int PAR_NUIS[NPARS]       = {    0,      0,     0,     1,          0,            0,           0,            0,    0,    0,    0,    0 }; // jer only
-//const int PAR_NUIS[NPARS]       = {    0,      1,     1,     1,          0,            0,           0,            0,    0,    0,    0,    0 }; // for all except background
-//const int PAR_NUIS[NPARS]       = {    0,      0,     0,     0,          0,            0,           0,            0,    4,    4,    4,    4 }; // background only
+//int PAR_NUIS[NPARS]       = {    0,      1,     1,     1,          0,            0,           0,            0,    4,    4,    4,    4 }; // all (same as above)
+//int PAR_NUIS[NPARS]       = {    0,      1,     0,     0,          0,            0,           0,            0,    0,    0,    0,    0 }; // lumi only
+//int PAR_NUIS[NPARS]       = {    0,      0,     1,     0,          0,            0,           0,            0,    0,    0,    0,    0 }; // jes only
+//int PAR_NUIS[NPARS]       = {    0,      0,     0,     1,          0,            0,           0,            0,    0,    0,    0,    0 }; // jer only
+//int PAR_NUIS[NPARS]       = {    0,      1,     1,     1,          0,            0,           0,            0,    0,    0,    0,    0 }; // all except background
+//int PAR_NUIS[NPARS]       = {    0,      0,     0,     0,          0,            0,           0,            0,    4,    4,    4,    4 }; // background only
 
 //
 // End of User Section 1
@@ -107,19 +110,32 @@ const bool BonlyFitForSyst = 1;
 // shift in the counter used to extract the covariance matrix
 int shift = 1;
 
-// branching fraction
-double BR = 1.;
-
-// resonance shape type
-string ResShapeType = "gg";
-
 TH1D* HISTCDF=0; // signal CDF
 
+////////////////////////////////////////////////////////////////////////////////
+// fit functions
+////////////////////////////////////////////////////////////////////////////////
+Double_t fitQCD4Par(Double_t *m, Double_t *p)
+{
+    double x=m[0];
+    double logx=log(x);
+    return p[0]*pow(1.-x,p[1])/pow(x,p[2]+p[3]*logx);
+}
+
+Double_t fitQCD6Par(Double_t *m, Double_t *p)
+{
+    double x=m[0];
+    double logx=log(x);
+    return p[0]*pow(1.-x,p[1])/pow(x,p[2]+p[3]*logx+p[4]*pow(logx,2)+p[5]*pow(logx,3));
+}
+
+TF1 fit4par("fit4par",fitQCD4Par,BOUNDARIES[0],BOUNDARIES[NBINS],4);
+TF1 fit6par("fit6par",fitQCD6Par,BOUNDARIES[0],BOUNDARIES[NBINS],6);
 
 ////////////////////////////////////////////////////////////////////////////////
-// function integral
+// function integral -- 4-parameter background fit function
 ////////////////////////////////////////////////////////////////////////////////
-double INTEGRAL(double *x0, double *xf, double *par)
+double INTEGRAL_4PAR(double *x0, double *xf, double *par)
 {
   double xs=par[0];
   double lumi=par[1];
@@ -129,18 +145,18 @@ double INTEGRAL(double *x0, double *xf, double *par)
   double p1=par[5];
   double p2=par[6];
   double p3=par[7];
-  double n[NBKGPARS] = {0.};
-  n[0]=par[8];
-  n[1]=par[9];
-  n[2]=par[10];
-  n[3]=par[11];
+  double n[4] = {0.};
+  n[0]=par[10];
+  n[1]=par[11];
+  n[2]=par[12];
+  n[3]=par[13];
 
   if( COV_MATRIX[0+shift][0+shift]>0. && (n[0]!=0. || n[1]!=0. || n[2]!=0. || n[3]!=0.) )
   {
-    double g[NBKGPARS] = {0.};
-    for(int v=0; v<NBKGPARS; ++v)
+    double g[4] = {0.};
+    for(int v=0; v<4; ++v)
     {
-      for(int k=0; k<NBKGPARS; ++k) g[k]=n[v]*eigenValues(v)*eigenVectors[k][v];
+      for(int k=0; k<4; ++k) g[k]=n[v]*eigenValues(v)*eigenVectors[k][v];
       p0 += g[0];
       p1 += g[1];
       p2 += g[2];
@@ -148,19 +164,21 @@ double INTEGRAL(double *x0, double *xf, double *par)
     }
   }
 
+  fit4par.SetParameter(0,p0);
+  fit4par.SetParameter(1,p1);
+  fit4par.SetParameter(2,p2);
+  fit4par.SetParameter(3,p3);
+
   // uses Simpson's 3/8th rule to compute the background integral over a short interval
-  // also use a power series expansion to determine the intermediate intervals since the pow() call is expensive
+  double h=(xf[0]-x0[0])/3./sqrtS;
+  double a=x0[0]/sqrtS;
+  double b=xf[0]/sqrtS;
+  double f1=fit4par.Eval(a);
+  double f2=fit4par.Eval(a+h);
+  double f3=fit4par.Eval(b-h);
+  double f4=fit4par.Eval(b);
 
-  double dx=(xf[0]-x0[0])/3./sqrtS;
-  double x=x0[0]/sqrtS;
-  double logx=log(x);
-
-  double a=pow(1-x,p1)/pow(x,p2+p3*logx);
-  double b=dx*a/x/(x-1)*(p2+p1*x-p2*x-2*p3*(x-1)*logx);
-  double c=0.5*dx*dx*a*( (p1-1)*p1/(x-1)/(x-1) - 2*p1*(p2+2*p3*logx)/(x-1)/x + (p2+p2*p2-2*p3+2*p3*logx*(1+2*p2+2*p3*logx))/x/x );
-  double d=0.166666667*dx*dx*dx*a*( (p1-2)*(p1-1)*p1/(x-1)/(x-1)/(x-1) - 3*(p1-1)*p1*(p2+2*p3*logx)/(x-1)/(x-1)/x - (1+p2+2*p3*logx)*(p2*(2+p2) - 6*p3 + 4*p3*logx*(1+p2*p3*logx))/x/x/x + 3*p1*(p2+p2*p2-2*p3+2*p3*logx*(1+2*p2+2*p3*logx))/(x-1)/x/x );
-
-  double bkg=(xf[0]-x0[0])*p0*(a+0.375*(b+c+d)+0.375*(2*b+4*c+8*d)+0.125*(3*b+9*c+27*d));
+  double bkg=sqrtS*0.375*h*(f1 + 3*(f2 + f3) + f4);
   if(bkg<0.) bkg=1e-7;
 
   if(xs==0.0) return bkg;
@@ -179,6 +197,87 @@ double INTEGRAL(double *x0, double *xf, double *par)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+// function integral -- 6-parameter background fit function
+////////////////////////////////////////////////////////////////////////////////
+double INTEGRAL_6PAR(double *x0, double *xf, double *par)
+{
+  double xs=par[0];
+  double lumi=par[1];
+  double jes=par[2];
+  double jer=par[3];
+  double p0=par[4];
+  double p1=par[5];
+  double p2=par[6];
+  double p3=par[7];
+  double p4=par[8];
+  double p5=par[9];
+  double n[6] = {0.};
+  n[0]=par[10];
+  n[1]=par[11];
+  n[2]=par[12];
+  n[3]=par[13];
+  n[4]=par[14];
+  n[5]=par[15];
+
+  if( COV_MATRIX[0+shift][0+shift]>0. && (n[0]!=0. || n[1]!=0. || n[2]!=0. || n[3]!=0. || n[4]!=0. || n[5]!=0.) )
+  {
+    double g[6] = {0.};
+    for(int v=0; v<6; ++v)
+    {
+      for(int k=0; k<6; ++k) g[k]=n[v]*eigenValues(v)*eigenVectors[k][v];
+      p0 += g[0];
+      p1 += g[1];
+      p2 += g[2];
+      p3 += g[3];
+      p4 += g[4];
+      p5 += g[5];
+    }
+  }
+
+  fit6par.SetParameter(0,p0);
+  fit6par.SetParameter(1,p1);
+  fit6par.SetParameter(2,p2);
+  fit6par.SetParameter(3,p3);
+  fit6par.SetParameter(4,p4);
+  fit6par.SetParameter(5,p5);
+
+  // uses Simpson's 3/8th rule to compute the background integral over a short interval
+  double h=(xf[0]-x0[0])/3./sqrtS;
+  double a=x0[0]/sqrtS;
+  double b=xf[0]/sqrtS;
+  double f1=fit6par.Eval(a);
+  double f2=fit6par.Eval(a+h);
+  double f3=fit6par.Eval(b-h);
+  double f4=fit6par.Eval(b);
+
+  double bkg=sqrtS*0.375*h*(f1 + 3*(f2 + f3) + f4);
+  if(bkg<0.) bkg=1e-7;
+
+  if(xs==0.0) return bkg;
+
+  double xprimef=jes*(jer*(xf[0]-SIGMASS)+SIGMASS);
+  double xprime0=jes*(jer*(x0[0]-SIGMASS)+SIGMASS);
+  int bin1=HISTCDF->GetXaxis()->FindBin(xprimef);
+  int bin2=HISTCDF->GetXaxis()->FindBin(xprime0);
+  if(bin1<1) bin1=1;
+  if(bin1>HISTCDF->GetNbinsX()) bin1=HISTCDF->GetNbinsX();
+  if(bin2<1) bin2=1;
+  if(bin2>HISTCDF->GetNbinsX()) bin2=HISTCDF->GetNbinsX();
+  double sig=xs*lumi*(HISTCDF->GetBinContent(bin1)-HISTCDF->GetBinContent(bin2));
+
+  return bkg+sig;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// main function integral
+////////////////////////////////////////////////////////////////////////////////
+double INTEGRAL(double *x0, double *xf, double *par)
+{
+  if(use6ParFit) return INTEGRAL_6PAR(x0, xf, par);
+  else           return INTEGRAL_4PAR(x0, xf, par);
+}
+
+////////////////////////////////////////////////////////////////////////////////
 // main function
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -186,14 +285,12 @@ int main(int argc, char* argv[])
 {
 
   if(argc<=1) {
-    cout << "Usage: stats signalmass [BR ResShapeType]" << endl;
+    cout << "Usage: stats signalmass" << endl;
     return 0;
   }
 
   SIGMASS = atof(argv[1]);
-  int masspoint = int(SIGMASS);
-  if(argc>2) BR = atof(argv[2]);
-  if(argc>3) ResShapeType = argv[3];
+  string masspoint = argv[1];
 
   //##################################################################################################################################
   // User Section 2
@@ -202,19 +299,16 @@ int main(int argc, char* argv[])
   //
 
   // input data file
-  INPUTFILES.push_back("Data_and_ResonanceShapes/Final__histograms_CSVL_0Tag_WideJets.root");
+  INPUTFILES.push_back("/uscms_data/d2/ferencek/BoostedStudies/CMSSW_5_3_18/test/LimitCode/Data_and_ResonanceShapes/DataScouting_Bora040214_Run2012BCD_runrange_193834-208686_dijet.root");
 
   // data histogram name
-  string datahistname = "DATA__cutHisto_allPreviousCuts________DijetMass_pretag";
+  string datahistname = "scoutingDiJetVariables/h1_MjjWide_finalSel";
 
   // input signal files with resonance shapes
-  string filename1 = "Data_and_ResonanceShapes/Resonance_Shapes_WideJets_" + ResShapeType + ".root";
-  string filename2 = "Data_and_ResonanceShapes/Resonance_Shapes_WideJets_" + ResShapeType + ".root";
+  string filename = "/uscms_data/d2/ferencek/BoostedStudies/CMSSW_5_3_18/test/LimitCode/Data_and_ResonanceShapes/RSGravitonToGG_M_" + masspoint + ".root";
 
-  // signal histogram names
-  ostringstream histname1, histname2;
-  histname1 << "h_" << ResShapeType << "_" << masspoint;
-  histname2 << "h_" << ResShapeType << "_" << masspoint;
+  // signal histogram name
+  string histname = "scoutingDiJetVariables/h1_MjjWide_finalSel";
 
   //
   // End of User Section 2
@@ -224,13 +318,15 @@ int main(int argc, char* argv[])
 
   if(!posS) PAR_MIN[0] = -PAR_MAX[0];
 
+  if(!use6ParFit) { PAR_TYPE[8]=3; PAR_TYPE[9]=3; PAR_NUIS[14]=0; PAR_NUIS[15]=0; }
+
   // initialize the covariance matrix
   for(int i = 0; i<NPARS; ++i) { for(int j = 0; j<NPARS; ++j) COV_MATRIX[i][j]=0.; }
 
   // enable more detailed printout from the BAT MCMC
   BCLog::SetLogLevel(BCLog::detail);
 
-  HISTCDF=getSignalCDF(filename1.c_str(), histname1.str().c_str(), filename2.c_str(), histname2.str().c_str(), BR, 1., 1.);
+  HISTCDF=getSignalCDF(filename.c_str(), histname.c_str(), filename.c_str(), histname.c_str(), 1., 1., 1.);
 
   assert(HISTCDF && SIGMASS>0);
 
@@ -238,16 +334,15 @@ int main(int argc, char* argv[])
   TH1D* data=getData(INPUTFILES, datahistname.c_str(), NBINS, BOUNDARIES);
 
   // create the output file
-  ostringstream outputfile;
-  outputfile << OUTPUTFILE.substr(0,OUTPUTFILE.find(".root")) << "_" << masspoint << "_" << BR << "_" << ResShapeType << ".root";
-  TFile* rootfile=new TFile(outputfile.str().c_str(), "RECREATE");  rootfile->cd();
+  string outputfile = OUTPUTFILE.substr(0,OUTPUTFILE.find(".root")) + "_" + masspoint + ".root";
+  TFile* rootfile=new TFile(outputfile.c_str(), "RECREATE");  rootfile->cd();
 
   // xs value
   double XSval;
 
   // setup an initial fitter to perform a signal+background fit
   Fitter* initfit = new Fitter(data, INTEGRAL);
-  for(int i=0; i<NPARS; i++) initfit->defineParameter(i, PAR_NAMES[i], PAR_GUESSES[i], PAR_ERR[i], PAR_MIN[i], PAR_MAX[i], PAR_NUIS[i]);
+  for(int i=0; i<NPARS; i++) initfit->defineParameter(i, PAR_NAMES[i].c_str(), PAR_GUESSES[i], PAR_ERR[i], PAR_MIN[i], PAR_MAX[i], PAR_NUIS[i]);
 
   // do an initial signal+background fit first
   for(int i=0; i<NPARS; i++) if(PAR_TYPE[i]>=2 || PAR_MIN[i]==PAR_MAX[i]) initfit->fixParameter(i);
@@ -272,7 +367,7 @@ int main(int argc, char* argv[])
   Fitter* fit_data = new Fitter(data, INTEGRAL);
   fit_data->setPOIIndex(POIINDEX);
   //fit_data->setPrintLevel(0);
-  for(int i=0; i<NPARS; i++) fit_data->defineParameter(i, PAR_NAMES[i], initfit->getParameter(i), PAR_ERR[i], PAR_MIN[i], PAR_MAX[i], PAR_NUIS[i]);
+  for(int i=0; i<NPARS; i++) fit_data->defineParameter(i, PAR_NAMES[i].c_str(), initfit->getParameter(i), PAR_ERR[i], PAR_MIN[i], PAR_MAX[i], PAR_NUIS[i]);
 
   // perform a signal+background fit possibly followed by a background-only fit with a fixed but non-zero signal
   for(int i=0; i<NPARS; i++) if(PAR_TYPE[i]>=2 || PAR_MIN[i]==PAR_MAX[i]) fit_data->fixParameter(i);
@@ -338,7 +433,7 @@ int main(int argc, char* argv[])
     Fitter* fit = new Fitter(hist, INTEGRAL);
     fit->setPOIIndex(POIINDEX);
     fit->setPrintLevel(0);
-    for(int i=0; i<NPARS; i++) fit->defineParameter(i, PAR_NAMES[i], fit_data->getParameter(i), PAR_ERR[i], PAR_MIN[i], PAR_MAX[i], PAR_NUIS[i]);
+    for(int i=0; i<NPARS; i++) fit->defineParameter(i, PAR_NAMES[i].c_str(), fit_data->getParameter(i), PAR_ERR[i], PAR_MIN[i], PAR_MAX[i], PAR_NUIS[i]);
 
     // perform a signal+background fit possibly followed by a background-only fit with a fixed but non-zero signal
     for(int i=0; i<NPARS; i++) if(PAR_TYPE[i]>=2 || PAR_MIN[i]==PAR_MAX[i]) fit->fixParameter(i);
