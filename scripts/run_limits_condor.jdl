@@ -1,0 +1,13 @@
+universe = vanilla
+Executable = run_limits_condor.sh
+Requirements = Memory >= 199 &&OpSys == "LINUX"&& (Arch != "DUMMY" )
+getenv=True
+Should_Transfer_Files = YES
+WhenToTransferOutput = ON_EXIT
+#Transfer_Input_Files = file1, file2
+Output = condor_$(Cluster)_$(Process).stdout
+Error = condor_$(Cluster)_$(Process).stderr
+Log = condor_$(Cluster)_$(Process).log
+notify_user = NO
+Arguments = $(Process) 0.75 gg /uscms_data/d2/sertac/BJets/
+Queue 46

@@ -120,16 +120,16 @@ double BR = 1.;
 string LFRS = "gg";
 
 // CSVL 0- and 2-tag efficiencies and efficiency errors for heavy and light flavor final states
-double masses_eff[5] = {1000.0, 2000.0, 3000.0, 4000.0, 5500.0};
-double eff0_h[5] = {0.14375,0.347866, 0.474486, 0.515598, 0.406457};
-double eff2_h[5] = {0.362346,0.153207,0.0892634, 0.0764071, 0.141174};
-double eff0_l[5] = {0.823713, 0.779573, 0.742028, 0.716053, 0.753072};
-double eff2_l[5] = {0.0168151, 0.0245664, 0.0301618, 0.0364609, 0.0292424};
+double masses_eff[5] = {1000., 2000., 3000., 4000., 5500.};
+double eff0_h[5] = {0.325315,0.49985, 0.560019,  0.532869, 0.468217 };
+double eff2_h[5] = {0.0909237, 0.0669106, 0.0576674, 0.0658264, 0.0719839};
+double eff0_l[5] = {0.325315,0.49985, 0.560019,  0.532869, 0.468217 };
+double eff2_l[5] = {0.0909237, 0.0669106, 0.0576674, 0.0658264, 0.0719839};
 
-double eff0_err_h[5] = {0.00227473 ,0.0121575 ,0.0237492 ,0.0258029 ,0.0257271};
-double eff2_err_h[5] = {0.0318082 ,0.0278846 ,0.0220702 ,0.0198965 ,0.0298934};
-double eff0_err_l[5] = {0.0608508 ,0.0453744 ,0.0497222 ,0.0481305 ,0.0520862};
-double eff2_err_l[5] = {0.00682908 ,0.00930803 ,0.0120509 ,0.015401 ,0.0144653};
+double eff0_err_h[5] = {0.00457968 ,0.010759 ,0.0136643 ,0.0156359 ,0.0200901};
+double eff2_err_h[5] = {0.0169435 ,0.0133962 ,0.0121334 ,0.0133329 ,0.0138274};
+double eff0_err_l[5] = {0.00457968 ,0.010759 ,0.0136643 ,0.0156359 ,0.0200901};
+double eff2_err_l[5] = {0.0169435 ,0.0133962 ,0.0121334 ,0.0133329 ,0.0138274};
 
 TGraph *g_eff0_h = new TGraph(5, masses_eff, eff0_h);
 TGraph *g_eff2_h = new TGraph(5, masses_eff, eff2_h);
@@ -391,12 +391,12 @@ int main(int argc, char* argv[])
   INPUTFILES.push_back("Data_and_ResonanceShapes/Histos_data_1tag.root");
   INPUTFILES.push_back("Data_and_ResonanceShapes/Histos_data_2tag.root");
 
- // setup the signal histogram
-  string filename1 = "Data_and_ResonanceShapes/Resonance_Shapes_bb_Pythia8.root";
+  // setup the signal histogram
+  string filename1 = "Data_and_ResonanceShapes/Resonance_Shapes_bg_Pythia8.root";
   string filename2 = "Data_and_ResonanceShapes/Resonance_Shapes_" + LFRS + "_Pythia8.root";
 
   ostringstream histname1, histname2;
-  histname1 << "h_bb_" << masspoint;
+  histname1 << "h_bg_" << masspoint;
   histname2 << "h_" << LFRS << "_" << masspoint;
 
   // commented out since the limit code currenlty does not work with combined shapes
