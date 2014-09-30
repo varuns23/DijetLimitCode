@@ -33,7 +33,7 @@ Please refer to https://twiki.cern.ch/twiki/bin/view/CMS/DijetLimitCode for more
 
 3) Checkout the limit code package:
 
-   git clone git://github.com/ferencek/cms-DijetLimitCode.git LimitCode
+   git clone git://github.com/CMSDIJET/DijetLimitCode.git LimitCode
 
    Enter the package directory:
 
