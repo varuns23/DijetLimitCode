@@ -5,14 +5,14 @@ Please refer to https://twiki.cern.ch/twiki/bin/view/CMS/DijetLimitCode for more
 
 1) Set up your CMSSW working area:
 
-   setenv SCRAM_ARCH slc5_amd64_gcc462
-   cmsrel CMSSW_5_3_18
-   cd CMSSW_5_3_18/test
+   setenv SCRAM_ARCH slc6_amd64_gcc481
+   cmsrel CMSSW_7_0_9
+   cd CMSSW_7_0_9/test
    cmsenv
 
    NOTE: You can skip this step if you already have your working area set up. Nevertheless,
          you will still need to initialize the CMSSW environment by calling 'cmsenv'.
-         CMSSW_5_3_18 is used just as an example. Any CMSSW_5_3_X release should work.
+         CMSSW_7_0_9 is used just as an example. Any CMSSW_7_0_X release should work.
 
 2) Install BAT (Bayesian Analysis Toolkit):
 
@@ -70,4 +70,4 @@ Please refer to https://twiki.cern.ch/twiki/bin/view/CMS/DijetLimitCode for more
 
    where MASS is the resonance mass in GeV. A more concrete example of running the code would be
 
-   ./stats 800
+   ./stats 1000
