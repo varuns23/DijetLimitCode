@@ -117,14 +117,14 @@ TH1D* HISTCDF=0; // signal CDF
 ////////////////////////////////////////////////////////////////////////////////
 Double_t fitQCD4Par(Double_t *m, Double_t *p)
 {
-    double x=m[0];
+    double x=m[0]/sqrtS;
     double logx=log(x);
     return p[0]*pow(1.-x,p[1])/pow(x,p[2]+p[3]*logx);
 }
 
 Double_t fitQCD6Par(Double_t *m, Double_t *p)
 {
-    double x=m[0];
+    double x=m[0]/sqrtS;
     double logx=log(x);
     return p[0]*pow(1.-x,p[1])/pow(x,p[2]+p[3]*logx+p[4]*pow(logx,2)+p[5]*pow(logx,3));
 }
@@ -170,15 +170,15 @@ double INTEGRAL_4PAR(double *x0, double *xf, double *par)
   fit4par.SetParameter(3,p3);
 
   // uses Simpson's 3/8th rule to compute the background integral over a short interval
-  double h=(xf[0]-x0[0])/3./sqrtS;
-  double a=x0[0]/sqrtS;
-  double b=xf[0]/sqrtS;
+  double h=(xf[0]-x0[0])/3.;
+  double a=x0[0];
+  double b=xf[0];
   double f1=fit4par.Eval(a);
   double f2=fit4par.Eval(a+h);
   double f3=fit4par.Eval(b-h);
   double f4=fit4par.Eval(b);
 
-  double bkg=sqrtS*0.375*h*(f1 + 3*(f2 + f3) + f4);
+  double bkg=0.375*h*(f1 + 3*(f2 + f3) + f4);
   if(bkg<0.) bkg=1e-7;
 
   if(xs==0.0) return bkg;
@@ -242,15 +242,15 @@ double INTEGRAL_6PAR(double *x0, double *xf, double *par)
   fit6par.SetParameter(5,p5);
 
   // uses Simpson's 3/8th rule to compute the background integral over a short interval
-  double h=(xf[0]-x0[0])/3./sqrtS;
-  double a=x0[0]/sqrtS;
-  double b=xf[0]/sqrtS;
+  double h=(xf[0]-x0[0])/3.;
+  double a=x0[0];
+  double b=xf[0];
   double f1=fit6par.Eval(a);
   double f2=fit6par.Eval(a+h);
   double f3=fit6par.Eval(b-h);
   double f4=fit6par.Eval(b);
 
-  double bkg=sqrtS*0.375*h*(f1 + 3*(f2 + f3) + f4);
+  double bkg=0.375*h*(f1 + 3*(f2 + f3) + f4);
   if(bkg<0.) bkg=1e-7;
 
   if(xs==0.0) return bkg;
