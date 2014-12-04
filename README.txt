@@ -70,4 +70,4 @@ Please refer to https://twiki.cern.ch/twiki/bin/view/CMS/DijetLimitCode for more
 
    where MASS is the resonance mass in GeV. A more concrete example of running the code would be
 
-   ./stats 1000
+   ./stats 3000
