@@ -41,7 +41,7 @@ const int NSAMPLES=0; // 10000 (larger value is better but it also slows down th
 // IMPORTANT: With useMCMC = 0, the systematic uncertanties are included in the limit calculation only when NSAMPLES is greater than 0. Use the PAR_NUIS[] array below to control what uncertainties are included
 
 // number of pseudoexperiments (when greater than 0, expected limit with +/- 1 and 2 sigma bands is calculated)
-const int NPES=100; // 200 (the more pseudo-experiments, the better. However, 200 is a reasonable choice)
+const int NPES=200; // 200 (the more pseudo-experiments, the better. However, 200 is a reasonable choice)
 
 // use 6-parameter background fit function
 const bool use6ParFit = 0;
@@ -75,7 +75,7 @@ const int NPARS=16;
 const int NBKGPARS=(use6ParFit ? 6 : 4);
 const int POIINDEX=0; // which parameter is "of interest"
 string PAR_NAMES[NPARS]   = { "xs",  "lumi",  "jes", "jer",        "p0",        "p1",        "p2",         "p3",        "p4",         "p5", "n0", "n1", "n2", "n3", "n4", "n5" };
-double PAR_GUESSES[NPARS] = { 1E-3,   1000.,    1.0,   1.0, 5.83981e-04, 4.88825e+00, 7.14612e+00,  2.82115e-01,          0.,           0.,    0,    0,    0,    0,    0,    0 };
+double PAR_GUESSES[NPARS] = { 1E-3,   1000.,    1.0,   1.0, 5.46302e-04, 4.82153e+00, 7.19274e+00,  2.91177e-01,          0.,           0.,    0,    0,    0,    0,    0,    0 };
 double PAR_MIN[NPARS]     = {    0,     0.0,    0.0,   0.0,        -1E4,       -9999,       -9999,        -9999,       -9999,        -9999, -100, -100, -100, -100, -100, -100 };
 double PAR_MAX[NPARS]     = {  1E3,     5E3,    2.0,   2.0,         1E4,        9999,        9999,         9999,        9999,         9999,  100,  100,  100,  100,  100,  100 };
 double PAR_ERR[NPARS]     = { 1E-3,    500.,   0.01,  0.10,       1e-02,       1e-01,       1e-01,        1e-02,       1e-02,        1e-03,    1,    1,    1,    1,    1,    1 };
@@ -106,7 +106,7 @@ TMatrixD eigenVectors = TMatrixD(NBKGPARS,NBKGPARS);
 const bool posS = 0;
 
 // use B-only fit with fixed but non-zero signal when calculating the covariance matrix used for background systematics
-const bool BonlyFitForSyst = 1;
+const bool BonlyFitForSyst = 0; // disabled to speed things up since not including systematics in the limits
 
 // shift in the counter used to extract the covariance matrix
 int shift = 1;
@@ -307,10 +307,10 @@ int main(int argc, char* argv[])
   string datahistname = "hist_allCutsQCD";
 
   // input signal files with resonance shapes
-  string filename = "Data_and_ResonanceShapes/histo_signal_bkg_Dijet_MassW.root";
+  string filename = "Data_and_ResonanceShapes/raw_signal_PHYS14.root";
 
   // signal histogram name
-  string histname = "hist_allCutsSig_" + masspoint;
+  string histname = "h_Qstar_PU20_" + masspoint + "_WJ";
 
   //
   // End of User Section 2
@@ -339,8 +339,8 @@ int main(int argc, char* argv[])
   string outputfile = OUTPUTFILE.substr(0,OUTPUTFILE.find(".root")) + "_" + masspoint + ".root";
   TFile* rootfile=new TFile(outputfile.c_str(), "RECREATE");  rootfile->cd();
 
-  // xs value
-  double XSval;
+//   // xs value
+//   double XSval;
 
 //   // setup an initial fitter to perform a signal+background fit
 //   Fitter* initfit = new Fitter(data, INTEGRAL);
@@ -373,49 +373,49 @@ int main(int argc, char* argv[])
 
   // perform a signal+background fit possibly followed by a background-only fit with a fixed but non-zero signal
   for(int i=0; i<NPARS; i++) if(PAR_TYPE[i]>=2 || PAR_MIN[i]==PAR_MAX[i]) fit_data->fixParameter(i);
-//   if(BonlyFitForSyst) { fit_data->doFit(); if(fit_data->getFitStatus().find("CONVERGED")==string::npos) { fit_data->fixParameter(0); fit_data->setParameter(0, 0.0); } else fit_data->fixParameter(0); }
-//   fit_data->doFit(&COV_MATRIX[0][0], NPARS);
-//   cout << "Data fit status: " << fit_data->getFitStatus() << endl;
-//   fit_data->fixParameter(0); // a parameter needs to be fixed before its value can be changed
-//   fit_data->setParameter(0, 0.0); // set the xs value to 0 to get the B component of the S+B fit (for calculating pulls and generating pseudo-data)
-//   fit_data->setPrintLevel(0);
-//   fit_data->calcPull("pull_bkg_0")->Write();
-//   fit_data->calcDiff("diff_bkg_0")->Write();
-//   fit_data->write("fit_bkg_0");
-// 
-//   // calculate eigenvalues and eigenvectors
-//   for(int i = 0; i<NBKGPARS; ++i) { for(int j = 0; j<NBKGPARS; ++j) { covMatrix(i,j)=COV_MATRIX[i+shift][j+shift]; } }
-//   //covMatrix.Print();
-//   const TMatrixDSymEigen eigen_data(covMatrix);
-//   eigenValues = eigen_data.GetEigenValues();
-//   eigenValues.Sqrt();
-//   //eigenValues.Print();
-//   eigenVectors = eigen_data.GetEigenVectors();
-//   //eigenVectors.Print();
-// 
-//   fit_data->setParLimits(0, 0.0, PAR_MAX[0]); // for the posterior calculation, the signal xs has to be positive
-//   TGraph* post_data = 0;
-//   if(useMCMC==0)
-//   {
-//     post_data=fit_data->calculatePosterior(NSAMPLES);
-//     post_data->Write("post_0");
-//     cout << "Call limit reached: " << (fit_data->callLimitReached() ? "True" : "False") << endl;
-//   }
-//   else
-//   {
-//     post_data=fit_data->calculatePosterior(0);
-//     pair<double, double> statonly_bounds=evaluateInterval(post_data, ALPHA, LEFTSIDETAIL);
-//     fit_data->setParLimits(0, 0.0, xsUpperBoundFactor*(statonly_bounds.second));
-//     post_data=fit_data->calculatePosterior(NSAMPLES, useMCMC);
-//     //fit_data->PrintAllMarginalized("plots.ps");
-//     //fit_data->PrintResults("results.txt");
-//     post_data->Write("post_0");
-//   }
-// 
-//   // evaluate the limit
-//   pair<double, double> bounds_data=evaluateInterval(post_data, ALPHA, LEFTSIDETAIL);
-//   observedLowerBound=bounds_data.first;
-//   observedUpperBound=bounds_data.second;
+  if(BonlyFitForSyst) { fit_data->doFit(); if(fit_data->getFitStatus().find("CONVERGED")==string::npos) { fit_data->fixParameter(0); fit_data->setParameter(0, 0.0); } else fit_data->fixParameter(0); }
+  fit_data->doFit(&COV_MATRIX[0][0], NPARS);
+  cout << "Data fit status: " << fit_data->getFitStatus() << endl;
+  fit_data->fixParameter(0); // a parameter needs to be fixed before its value can be changed
+  fit_data->setParameter(0, 0.0); // set the xs value to 0 to get the B component of the S+B fit (for calculating pulls and generating pseudo-data)
+  fit_data->setPrintLevel(0);
+  fit_data->calcPull("pull_bkg_0")->Write();
+  fit_data->calcDiff("diff_bkg_0")->Write();
+  fit_data->write("fit_bkg_0");
+
+  // calculate eigenvalues and eigenvectors
+  for(int i = 0; i<NBKGPARS; ++i) { for(int j = 0; j<NBKGPARS; ++j) { covMatrix(i,j)=COV_MATRIX[i+shift][j+shift]; } }
+  //covMatrix.Print();
+  const TMatrixDSymEigen eigen_data(covMatrix);
+  eigenValues = eigen_data.GetEigenValues();
+  eigenValues.Sqrt();
+  //eigenValues.Print();
+  eigenVectors = eigen_data.GetEigenVectors();
+  //eigenVectors.Print();
+
+  fit_data->setParLimits(0, 0.0, PAR_MAX[0]); // for the posterior calculation, the signal xs has to be positive
+  TGraph* post_data = 0;
+  if(useMCMC==0)
+  {
+    post_data=fit_data->calculatePosterior(NSAMPLES);
+    post_data->Write("post_0");
+    cout << "Call limit reached: " << (fit_data->callLimitReached() ? "True" : "False") << endl;
+  }
+  else
+  {
+    post_data=fit_data->calculatePosterior(0);
+    pair<double, double> statonly_bounds=evaluateInterval(post_data, ALPHA, LEFTSIDETAIL);
+    fit_data->setParLimits(0, 0.0, xsUpperBoundFactor*(statonly_bounds.second));
+    post_data=fit_data->calculatePosterior(NSAMPLES, useMCMC);
+    //fit_data->PrintAllMarginalized("plots.ps");
+    //fit_data->PrintResults("results.txt");
+    post_data->Write("post_0");
+  }
+
+  // evaluate the limit
+  pair<double, double> bounds_data=evaluateInterval(post_data, ALPHA, LEFTSIDETAIL);
+  observedLowerBound=bounds_data.first;
+  observedUpperBound=bounds_data.second;
 
   // reset the covariance matrix
   for(int i = 0; i<NPARS; ++i) { for(int j = 0; j<NPARS; ++j) COV_MATRIX[i][j]=0.; }
@@ -429,13 +429,14 @@ int main(int argc, char* argv[])
 
     // setup the fitter with the input from the signal+background fit
     fit_data->setParameter(0, 0.0); // set the xs value to 0 to get the B component of the S+B fit (for calculating pulls and generating pseudo-data)
-    TH1D* hist = fit_data->makePseudoData((string("data")+pestr.str()).c_str());
+    //TH1D* hist = fit_data->makePseudoData((string("data")+pestr.str()).c_str()); // makes pseudo-data from the background fit, will be used once we have real data
+    TH1D* hist = fit_data->makePseudoDataFromMC((string("data")+pestr.str()).c_str());
     fit_data->setParameter(0, PAR_GUESSES[0]);
 
     Fitter* fit = new Fitter(hist, INTEGRAL);
     fit->setPOIIndex(POIINDEX);
     fit->setPrintLevel(0);
-    for(int i=0; i<NPARS; i++) fit->defineParameter(i, PAR_NAMES[i].c_str(), fit_data->getParameter(i), PAR_ERR[i], PAR_MIN[i], PAR_MAX[i], PAR_NUIS[i]);
+    for(int i=0; i<NPARS; i++) fit->defineParameter(i, PAR_NAMES[i].c_str(), PAR_GUESSES[i], PAR_ERR[i], PAR_MIN[i], PAR_MAX[i], PAR_NUIS[i]);
 
     // perform a signal+background fit possibly followed by a background-only fit with a fixed but non-zero signal
     for(int i=0; i<NPARS; i++) if(PAR_TYPE[i]>=2 || PAR_MIN[i]==PAR_MAX[i]) fit->fixParameter(i);
