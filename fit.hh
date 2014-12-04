@@ -69,6 +69,7 @@ public:
 
   // make pseudodata
   TH1D* makePseudoData(const char* name, double* parameters=0);
+  TH1D* makePseudoDataFromMC(const char* name);
 
   // calculate the posterior distribution
   TGraph* calculatePosterior(int nSamples, bool useMCMC=false);

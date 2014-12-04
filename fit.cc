@@ -409,6 +409,21 @@ TH1D* Fitter::makePseudoData(const char* name, double* parameters)
 }
 
 // ---------------------------------------------------------
+TH1D* Fitter::makePseudoDataFromMC(const char* name)
+{
+  // start with a copy of the original dataset
+  TH1D* hData=dynamic_cast<TH1D*>(data_->Clone(name));
+
+  for(int bin=1; bin<=hData->GetNbinsX(); ++bin) {
+    double binWidth=hData->GetBinWidth(bin);
+    double val=rand_->Poisson(hData->GetBinContent(bin)*binWidth);
+    hData->SetBinContent(bin, val/binWidth);
+    hData->SetBinError(bin, histError(val)/binWidth);
+  }
+  return hData;
+}
+
+// ---------------------------------------------------------
 void Fitter::evaluateForPosterior(double lo, double mid, double hi, double nllNormalization, std::map<double, double>& fcnEval_)
 {
   if((nCalls_++)>1000) {
