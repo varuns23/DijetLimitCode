@@ -30,7 +30,8 @@ Double_t fitQCD6Par(Double_t *m, Double_t *p)
     return p[0]*pow(1.-x,p[1])/pow(x,p[2]+p[3]*log(x)+p[4]*pow(log(x),2)+p[5]*pow(log(x),3));
 }
 
-void performFit(const string& fInputFile, const string& fPlot, const Double_t fFitXmin, const Double_t fFitXmax,
+void performFit(const string& fInputFile, const string& fPlot,  const Int_t fNbins, const Double_t *fBins,
+                const Double_t fFitXmin, const Double_t fFitXmax,
                 const string& fLabel, const string& fOutputFile, const bool use6ParFit, const Double_t fP0=1e-04,
                 const Double_t fP1=1e+01, const Double_t fP2=4e+00, const Double_t fP3=-0.1e-01, const Double_t fP4=0, const Double_t fP5=0)
 {
@@ -40,7 +41,7 @@ void performFit(const string& fInputFile, const string& fPlot, const Double_t fF
   gStyle->SetPadLeftMargin(0.13);
   gStyle->SetPadRightMargin(0.07);
 
-  //TRandom3 rand(4357);
+  TRandom3 rand(437);
   //TRandom3 rand(0);
 
   //cout << "Default number of iterations: " << TVirtualFitter::GetMaxIterations() << endl;
@@ -50,25 +51,28 @@ void performFit(const string& fInputFile, const string& fPlot, const Double_t fF
 
   TH1D *h1_plot = (TH1D*)file->Get(fPlot.c_str());
 
-  TH1D *h1_plot_diff = (TH1D*)h1_plot->Clone();
+  TH1D *h1_plot_r = (TH1D*)h1_plot->Rebin(fNbins,"h1_plot_r",fBins);
+
+  TH1D *h1_plot_diff = (TH1D*)h1_plot_r->Clone();
   h1_plot_diff->Reset();
 
-  for(Int_t i=1; i<=h1_plot->GetNbinsX(); ++i)
+  for(Int_t i=1; i<=h1_plot_r->GetNbinsX(); ++i)
   {
-    Double_t n = h1_plot->GetBinContent(i);
-    //Double_t n = rand.Poisson(h1_plot->GetBinContent(i));
-    //Double_t err = h1_plot->GetBinError(i);
-    Double_t l = 0.5*TMath::ChisquareQuantile(alpha/2,2*n);
-    Double_t h = 0.5*TMath::ChisquareQuantile(1-alpha/2,2*(n+1));
-    Double_t err = (h-l)/2;
-    Double_t dm  = h1_plot->GetBinWidth(i);
+    //Double_t n = h1_plot_r->GetBinContent(i);
+    Double_t n = rand.Poisson(h1_plot_r->GetBinContent(i));
+    //Double_t err = h1_plot_r->GetBinError(i);
+    //Double_t l = 0.5*TMath::ChisquareQuantile(alpha/2,2*n);
+    //Double_t h = 0.5*TMath::ChisquareQuantile(1-alpha/2,2*(n+1));
+    //Double_t err = (h-l)/2;
+    Double_t err = sqrt(n);
+    Double_t dm  = h1_plot_r->GetBinWidth(i);
 
     h1_plot_diff->SetBinContent(i, n/dm);
     h1_plot_diff->SetBinError(i, err/dm);
   }
 
   h1_plot_diff->GetXaxis()->SetTitle("Dijet Mass [GeV]");
-//h1_plot_diff->GetYaxis()->SetTitle("d#sigma/dm [pb/GeV]");
+  //h1_plot_diff->GetYaxis()->SetTitle("d#sigma/dm [pb/GeV]");
   h1_plot_diff->GetYaxis()->SetTitle("Entries/GeV");
   h1_plot_diff->GetXaxis()->SetRangeUser(fFitXmin,fFitXmax);
   h1_plot_diff->GetYaxis()->SetRangeUser(1e-3,1e4);
@@ -79,7 +83,7 @@ void performFit(const string& fInputFile, const string& fPlot, const Double_t fF
   // Fit to data
   TF1 *fit = new TF1("fit",fitQCD4Par,fFitXmin,fFitXmax,4);           // 4 Param. Fit
   if(use6ParFit) fit = new TF1("fit",fitQCD6Par,fFitXmin,fFitXmax,6); // 6 Param. Fit
-//   gStyle->SetOptFit(1111);
+  //gStyle->SetOptFit(1111);
   fit->SetParameter(0,fP0);
   fit->SetParameter(1,fP1);
   fit->SetParameter(2,fP2);
@@ -98,7 +102,7 @@ void performFit(const string& fInputFile, const string& fPlot, const Double_t fF
   fit->SetLineWidth(2);
   fit->SetLineColor(kBlue);
   cout << "*********************************************************"<<endl;
-  TFitResultPtr s = h1_plot_diff->Fit("fit","SRL");
+  TFitResultPtr s = h1_plot_diff->Fit("fit","SRLI");
   TString status_default = gMinuit->fCstatu.Data();
   // Results of the fit
   cout << "*********************************************************"<<endl;
@@ -126,7 +130,7 @@ void performFit(const string& fInputFile, const string& fPlot, const Double_t fF
   
   TLatex l1;
   l1.SetTextAlign(12);
-//   l1.SetTextFont(42);
+  //l1.SetTextFont(42);
   l1.SetNDC();
   l1.SetTextSize(0.03);
   l1.DrawLatex(0.17,0.33, "CMS Preliminary");
@@ -172,8 +176,8 @@ void drawFit(const string& fInputFile, const string& fPlot, const Int_t fNbins, 
     Double_t err = (h-l)/2;
     Double_t dm  = h1_plot_r->GetBinWidth(i);
 
-//     h1_plot_diff->SetBinContent(i, n/(dm*fLumi));
-//     h1_plot_diff->SetBinError(i, err/(dm*fLumi));
+    //h1_plot_diff->SetBinContent(i, n/(dm*fLumi));
+    //h1_plot_diff->SetBinError(i, err/(dm*fLumi));
     h1_plot_diff->SetBinContent(i, n/dm);
     h1_plot_diff->SetBinError(i, err/dm);
   }
@@ -249,12 +253,12 @@ void makePlots()
 // ##################
 
   performFit("../Data_and_ResonanceShapes/histo_signal_bkg_Dijet_MassW.root",
-             "hist_allCutsQCD", 1118, 6564, "M_{jj}>1118 GeV",
-             "DijetMass_4ParFit_Run2_13TeV.eps", 0, 5.83981e-04, 4.88825e+00, 7.14612e+00, 2.82115e-01);
+             "hist_allCutsQCD", 41, xbins, 1118, 6564, "M_{jj}>1118 GeV",
+             "DijetMass_4ParFit_Run2_13TeV.eps", 0, 5.64203e-04, 4.73078e+00, 7.14070e+00, 2.76385e-01);
 
   drawFit("../Data_and_ResonanceShapes/histo_signal_bkg_Dijet_MassW.root",
-          "hist_allCutsQCD", 41, xbins,
-          1118, 6564, "M_{jj}>1118 GeV", "DijetMass_Draw4ParFit_Run2_13TeV.eps", 0, 5.83981e-04, 4.88825e+00, 7.14612e+00, 2.82115e-01);
+          "hist_allCutsQCD", 41, xbins, 1118, 6564, "M_{jj}>1118 GeV",
+          "DijetMass_Draw4ParFit_Run2_13TeV.eps", 0, 5.46302e-04, 4.82153e+00, 7.19274e+00,  2.91177e-01);
 
 }
 
