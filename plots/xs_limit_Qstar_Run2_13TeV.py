@@ -358,7 +358,7 @@ legend.SetTextSize(0.03)
 legend.SetHeader('95% CL Upper Limits (stat. only)')
 #legend.AddEntry(graph_obs,"Observed","lp")
 if plot_exp:
-  legend.AddEntry(graph_exp,"Expected","lp")
+  legend.AddEntry(graph_exp,"Expected quark-gluon","lp")
 legend.Draw()
 
 legendTh = TLegend(.50,.83,.80,.88)
