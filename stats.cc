@@ -343,7 +343,7 @@ int main(int argc, char* argv[])
   TH1D* data=getData(INPUTFILES, datahistname.c_str(), NBINS, BOUNDARIES);
 
   // create the output file
-  string outputfile = OUTPUTFILE.substr(0,OUTPUTFILE.find(".root")) + "_" + masspoint + ".root";
+  string outputfile = OUTPUTFILE.substr(0,OUTPUTFILE.find(".root")) + "_" + masspoint + "_" + final_state + ".root";
   TFile* rootfile=new TFile(outputfile.c_str(), "RECREATE");  rootfile->cd();
 
 //   // xs value
