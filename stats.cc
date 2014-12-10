@@ -62,12 +62,13 @@ const string OUTPUTFILE="stats.root";
 const double sqrtS = 13000.;
 
 // histogram binning
-const int NBINS=41;
+const int NBINS=50;
 double BOUNDARIES[NBINS+1] = { 1118, 1181, 1246, 1313, 1383, 1455, 1530, 1607, 1687,
                                1770, 1856, 1945, 2037, 2132, 2231, 2332, 2438, 2546,
                                2659, 2775, 2895, 3019, 3147, 3279, 3416, 3558, 3704,
                                3854, 4010, 4171, 4337, 4509, 4686, 4869, 5058, 5253,
-                               5455, 5663, 5877, 6099, 6328, 6564 };
+                               5455, 5663, 5877, 6099, 6328, 6564, 6808, 7060, 7320, 
+                               7589, 7866, 8152, 8447, 8752, 9067 };
 
 // parameters
 double SIGMASS=0;
@@ -286,13 +287,17 @@ double INTEGRAL(double *x0, double *xf, double *par)
 int main(int argc, char* argv[])
 {
 
-  if(argc<=1) {
-    cout << "Usage: stats signalmass" << endl;
+  if(argc<=2) {
+    cout << "Usage: stats MASS FINAL_STATE" << endl;
     return 0;
   }
 
   SIGMASS = atof(argv[1]);
   string masspoint = argv[1];
+
+  string final_state = "qq";
+  if(argc>2) final_state = argv[2];
+
 
   //##################################################################################################################################
   // User Section 2
@@ -307,10 +312,12 @@ int main(int argc, char* argv[])
   string datahistname = "hist_allCutsQCD";
 
   // input signal files with resonance shapes
-  string filename = "Data_and_ResonanceShapes/raw_signal_PHYS14.root";
+  string filename = "Data_and_ResonanceShapes/Resonance_Shapes_qq_13TeV.root";
+  if(final_state=="qg") filename = "Data_and_ResonanceShapes/Resonance_Shapes_qg_PU20_13TeV.root";
+  if(final_state=="gg") filename = "Data_and_ResonanceShapes/Resonance_Shapes_gg_13TeV.root";
 
   // signal histogram name
-  string histname = "h_Qstar_PU20_" + masspoint + "_WJ";
+  string histname = "h_" + final_state + "_" + masspoint;
 
   //
   // End of User Section 2
