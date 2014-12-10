@@ -3,7 +3,12 @@
 import sys, os, subprocess, string, re
 from ROOT import *
 from array import array
+import CMS_lumi
 
+CMS_lumi.extraText = "Simulation Preliminary"
+CMS_lumi.lumi_sqrtS = "1 fb^{-1} (13 TeV)" # used with iPeriod = 0, e.g. for simulation-only plots (default is an empty string)
+iPos = 11
+iPeriod = 0
 
 gROOT.SetBatch(kTRUE);
 gStyle.SetOptStat(0)
@@ -133,7 +138,7 @@ xs_exp_limits_2sigma = array('d', [0.507784, 0.495869, 0.546778, 0.399355, 0.388
 ##
 ########################################################
 
-masses_xsTh = array('d', [
+massesTh = array('d', [
 1000.0,
 1100.0,
 1200.0,
@@ -216,7 +221,7 @@ masses_xsTh = array('d', [
 8900.0,
 9000.0])
 
-xsTh = array('d', [
+xsQstar = array('d', [
 0.4101E+03,
 0.2620E+03,
 0.1721E+03,
@@ -299,10 +304,10 @@ xsTh = array('d', [
 0.1673E-05,
 0.1326E-05])
 
-graph_xsTh = TGraph(len(masses_xsTh),masses_xsTh,xsTh)
-graph_xsTh.SetLineWidth(2)
-graph_xsTh.SetLineStyle(7)
-graph_xsTh.SetLineColor(2)
+graph_xsQstar = TGraph(len(massesTh),massesTh,xsQstar)
+graph_xsQstar.SetLineWidth(2)
+graph_xsQstar.SetLineStyle(7)
+graph_xsQstar.SetLineColor(2)
 
 graph_exp_2sigma = TGraph(len(masses_exp),masses_exp,xs_exp_limits_2sigma)
 graph_exp_2sigma.SetFillColor(kYellow)
@@ -338,9 +343,9 @@ graph_exp_2sigma.Draw("AF")
 graph_exp_1sigma.Draw("F")
 graph_exp.Draw("L")
 #graph_obs.Draw("LP")
-graph_xsTh.Draw("L")
+graph_xsQstar.Draw("L")
 
-legend = TLegend(.50,.63,.80,.76)
+legend = TLegend(.50,.59,.80,.68)
 legend.SetBorderSize(0)
 legend.SetFillColor(0)
 legend.SetFillStyle(0)
@@ -351,25 +356,27 @@ legend.SetHeader('95% CL Upper Limits (stat. only)')
 legend.AddEntry(graph_exp,"Expected quark-gluon","lp")
 legend.Draw()
 
-legendTh = TLegend(.50,.83,.80,.88)
+legendTh = TLegend(.50,.70,.80,.75)
 legendTh.SetBorderSize(0)
 legendTh.SetFillColor(0)
 legendTh.SetFillStyle(0)
 legendTh.SetTextFont(42)
 legendTh.SetTextSize(0.03)
-legendTh.AddEntry(graph_xsTh,"Excited quark","l")
+legendTh.AddEntry(graph_xsQstar,"Excited quark","l")
 legendTh.Draw()
 
-l1 = TLatex()
-l1.SetTextAlign(12)
-l1.SetTextFont(42)
-l1.SetNDC()
-l1.SetTextSize(0.04)
-l1.SetTextSize(0.04)
-l1.DrawLatex(0.18,0.40, "CMS Preliminary")
-l1.DrawLatex(0.18,0.32, "#intLdt = 1 fb^{-1}")
-l1.DrawLatex(0.19,0.27, "#sqrt{s} = 13 TeV")
+#l1 = TLatex()
+#l1.SetTextAlign(12)
+#l1.SetTextFont(42)
+#l1.SetNDC()
+#l1.SetTextSize(0.04)
+#l1.SetTextSize(0.04)
+#l1.DrawLatex(0.18,0.40, "CMS Preliminary")
+#l1.DrawLatex(0.18,0.32, "#intLdt = 1 fb^{-1}")
+#l1.DrawLatex(0.19,0.27, "#sqrt{s} = 13 TeV")
 
+# draw the lumi text on the canvas
+CMS_lumi.CMS_lumi(c, iPeriod, iPos)
 
 gPad.RedrawAxis();
 

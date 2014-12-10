@@ -3,7 +3,12 @@
 import sys, os, subprocess, string, re
 from ROOT import *
 from array import array
+import CMS_lumi
 
+CMS_lumi.extraText = "Simulation Preliminary"
+CMS_lumi.lumi_sqrtS = "1 fb^{-1} (13 TeV)" # used with iPeriod = 0, e.g. for simulation-only plots (default is an empty string)
+iPos = 11
+iPeriod = 0
 
 gROOT.SetBatch(kTRUE);
 gStyle.SetOptStat(0)
@@ -133,177 +138,6 @@ xs_exp_limits_2sigma = array('d', [1.02597, 0.547663, 0.703662, 0.5145, 0.45153,
 ##
 ########################################################
 
-masses_xsTh = array('d', [
-1000.0,
-1100.0,
-1200.0,
-1300.0,
-1400.0,
-1500.0,
-1600.0,
-1700.0,
-1800.0,
-1900.0,
-2000.0,
-2100.0,
-2200.0,
-2300.0,
-2400.0,
-2500.0,
-2600.0,
-2700.0,
-2800.0,
-2900.0,
-3000.0,
-3100.0,
-3200.0,
-3300.0,
-3400.0,
-3500.0,
-3600.0,
-3700.0,
-3800.0,
-3900.0,
-4000.0,
-4100.0,
-4200.0,
-4300.0,
-4400.0,
-4500.0,
-4600.0,
-4700.0,
-4800.0,
-4900.0,
-5000.0,
-5100.0,
-5200.0,
-5300.0,
-5400.0,
-5500.0,
-5600.0,
-5700.0,
-5800.0,
-5900.0,
-6000.0,
-6100.0,
-6200.0,
-6300.0,
-6400.0,
-6500.0,
-6600.0,
-6700.0,
-6800.0,
-6900.0,
-7000.0,
-7100.0,
-7200.0,
-7300.0,
-7400.0,
-7500.0,
-7600.0,
-7700.0,
-7800.0,
-7900.0,
-8000.0,
-8100.0,
-8200.0,
-8300.0,
-8400.0,
-8500.0,
-8600.0,
-8700.0,
-8800.0,
-8900.0,
-9000.0])
-
-xsTh = array('d', [
-0.4101E+03,
-0.2620E+03,
-0.1721E+03,
-0.1157E+03,
-0.7934E+02,
-0.5540E+02,
-0.3928E+02,
-0.2823E+02,
-0.2054E+02,
-0.1510E+02,
-0.1121E+02,
-0.8390E+01,
-0.6328E+01,
-0.4807E+01,
-0.3674E+01,
-0.2824E+01,
-0.2182E+01,
-0.1694E+01,
-0.1320E+01,
-0.1033E+01,
-0.8116E+00,
-0.6395E+00,
-0.5054E+00,
-0.4006E+00,
-0.3182E+00,
-0.2534E+00,
-0.2022E+00,
-0.1616E+00,
-0.1294E+00,
-0.1038E+00,
-0.8333E-01,
-0.6700E-01,
-0.5392E-01,
-0.4344E-01,
-0.3503E-01,
-0.2827E-01,
-0.2283E-01,
-0.1844E-01,
-0.1490E-01,
-0.1205E-01,
-0.9743E-02,
-0.7880E-02,
-0.6373E-02,
-0.5155E-02,
-0.4169E-02,
-0.3371E-02,
-0.2725E-02,
-0.2202E-02,
-0.1779E-02,
-0.1437E-02,
-0.1159E-02,
-0.9353E-03,
-0.7541E-03,
-0.6076E-03,
-0.4891E-03,
-0.3935E-03,
-0.3164E-03,
-0.2541E-03,
-0.2039E-03,
-0.1635E-03,
-0.1310E-03,
-0.1049E-03,
-0.8385E-04,
-0.6699E-04,
-0.5347E-04,
-0.4264E-04,
-0.3397E-04,
-0.2704E-04,
-0.2151E-04,
-0.1709E-04,
-0.1357E-04,
-0.1077E-04,
-0.8544E-05,
-0.6773E-05,
-0.5367E-05,
-0.4251E-05,
-0.3367E-05,
-0.2666E-05,
-0.2112E-05,
-0.1673E-05,
-0.1326E-05])
-
-graph_xsTh = TGraph(len(masses_xsTh),masses_xsTh,xsTh)
-graph_xsTh.SetLineWidth(2)
-graph_xsTh.SetLineStyle(7)
-graph_xsTh.SetLineColor(2)
-
 graph_exp_2sigma = TGraph(len(masses_exp),masses_exp,xs_exp_limits_2sigma)
 graph_exp_2sigma.SetFillColor(kYellow)
 graph_exp_2sigma.GetXaxis().SetTitle("Resonance Mass [GeV]")
@@ -338,9 +172,8 @@ graph_exp_2sigma.Draw("AF")
 graph_exp_1sigma.Draw("F")
 graph_exp.Draw("L")
 #graph_obs.Draw("LP")
-#graph_xsTh.Draw("L")
 
-legend = TLegend(.50,.63,.80,.76)
+legend = TLegend(.50,.59,.80,.68)
 legend.SetBorderSize(0)
 legend.SetFillColor(0)
 legend.SetFillStyle(0)
@@ -351,25 +184,18 @@ legend.SetHeader('95% CL Upper Limits (stat. only)')
 legend.AddEntry(graph_exp,"Expected gluon-gluon","lp")
 legend.Draw()
 
-#legendTh = TLegend(.50,.83,.80,.88)
-#legendTh.SetBorderSize(0)
-#legendTh.SetFillColor(0)
-#legendTh.SetFillStyle(0)
-#legendTh.SetTextFont(42)
-#legendTh.SetTextSize(0.03)
-#legendTh.AddEntry(graph_xsTh,"Excited quark","l")
-#legendTh.Draw()
+#l1 = TLatex()
+#l1.SetTextAlign(12)
+#l1.SetTextFont(42)
+#l1.SetNDC()
+#l1.SetTextSize(0.04)
+#l1.SetTextSize(0.04)
+#l1.DrawLatex(0.18,0.40, "CMS Preliminary")
+#l1.DrawLatex(0.18,0.32, "#intLdt = 1 fb^{-1}")
+#l1.DrawLatex(0.19,0.27, "#sqrt{s} = 13 TeV")
 
-l1 = TLatex()
-l1.SetTextAlign(12)
-l1.SetTextFont(42)
-l1.SetNDC()
-l1.SetTextSize(0.04)
-l1.SetTextSize(0.04)
-l1.DrawLatex(0.18,0.40, "CMS Preliminary")
-l1.DrawLatex(0.18,0.32, "#intLdt = 1 fb^{-1}")
-l1.DrawLatex(0.19,0.27, "#sqrt{s} = 13 TeV")
-
+#draw the lumi text on the canvas
+CMS_lumi.CMS_lumi(c, iPeriod, iPos)
 
 gPad.RedrawAxis();
 
