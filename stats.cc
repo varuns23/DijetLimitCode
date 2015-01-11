@@ -76,7 +76,7 @@ const int NPARS=16;
 const int NBKGPARS=(use6ParFit ? 6 : 4);
 const int POIINDEX=0; // which parameter is "of interest"
 string PAR_NAMES[NPARS]   = { "xs",  "lumi",  "jes", "jer",        "p0",        "p1",        "p2",         "p3",        "p4",         "p5", "n0", "n1", "n2", "n3", "n4", "n5" };
-double PAR_GUESSES[NPARS] = { 1E-3,    100.,    1.0,   1.0, 1.11274e-02, 1.16586e+01, 3.16148e+00,  -3.95678e-01,          0.,           0.,    0,    0,    0,    0,    0,    0 };
+double PAR_GUESSES[NPARS] = { 1E-3,    100.,    1.0,   1.0, 1.06713e-02, 1.12360e+01, 3.57611e+00, -3.05324e-01,          0.,           0.,    0,    0,    0,    0,    0,    0 };
 double PAR_MIN[NPARS]     = {    0,     0.0,    0.0,   0.0,       -9999,       -9999,       -9999,        -9999,       -9999,        -9999, -100, -100, -100, -100, -100, -100 };
 double PAR_MAX[NPARS]     = {  1E3,     5E3,    2.0,   2.0,        9999,        9999,        9999,         9999,        9999,         9999,  100,  100,  100,  100,  100,  100 };
 double PAR_ERR[NPARS]     = { 1E-3,     50.,   0.01,  0.10,       1e-02,       1e-01,       1e-01,        1e-02,       1e-02,        1e-03,    1,    1,    1,    1,    1,    1 };
@@ -302,13 +302,13 @@ int main(int argc, char* argv[])
   //
 
   // input data file
-  INPUTFILES.push_back("Data_and_ResonanceShapes/hDijetMassPseudo_JEC.root");
+  INPUTFILES.push_back("Data_and_ResonanceShapes/hDijetMassPseudo_JEC_WideJets.root");
 
   // data histogram name
   string datahistname = "hDijetMassPseudo";
 
   // input signal files with resonance shapes
-  string filename = "Data_and_ResonanceShapes/histos_Qstar" + masspoint +"_JEC.root";
+  string filename = "Data_and_ResonanceShapes/histos_Qstar" + masspoint +"_JEC_WideJets.root";
 
   // signal histogram name
   string histname = "dijetAna/hCorrDijetMass";
