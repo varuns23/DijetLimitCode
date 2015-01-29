@@ -76,10 +76,10 @@ const int NPARS=16;
 const int NBKGPARS=(use6ParFit ? 6 : 4);
 const int POIINDEX=0; // which parameter is "of interest"
 string PAR_NAMES[NPARS]   = { "xs",  "lumi",  "jes", "jer",        "p0",        "p1",        "p2",         "p3",        "p4",         "p5", "n0", "n1", "n2", "n3", "n4", "n5" };
-double PAR_GUESSES[NPARS] = { 1E-3,   1000.,    1.0,   1.0, 5.46302e-04, 4.82153e+00, 7.19274e+00,  2.91177e-01,          0.,           0.,    0,    0,    0,    0,    0,    0 };
+double PAR_GUESSES[NPARS] = { 1E-3,   1000.,    1.0,   1.0, 8.50116e-04, 5.46511e+00, 6.65688e+00,  2.87902e-01,          0.,           0.,    0,    0,    0,    0,    0,    0 };
 double PAR_MIN[NPARS]     = {    0,     0.0,    0.0,   0.0,        -1E4,       -9999,       -9999,        -9999,       -9999,        -9999, -100, -100, -100, -100, -100, -100 };
 double PAR_MAX[NPARS]     = {  1E3,     5E3,    2.0,   2.0,         1E4,        9999,        9999,         9999,        9999,         9999,  100,  100,  100,  100,  100,  100 };
-double PAR_ERR[NPARS]     = { 1E-3,    500.,   0.01,  0.10,       1e-02,       1e-01,       1e-01,        1e-02,       1e-02,        1e-03,    1,    1,    1,    1,    1,    1 };
+double PAR_ERR[NPARS]     = { 1E-3,    500.,   0.01,  0.10,       1e-04,       1e-01,       1e-01,        1e-03,       1e-02,        1e-03,    1,    1,    1,    1,    1,    1 };
 int PAR_TYPE[NPARS]       = {    1,       2,      2,     2,           0,           0,           0,            0,           0,            0,    3,    3,    3,    3,    3,    3 }; // // 1,2 = signal (2 not used in the fit); 0,3 = background (3 not used in the fit)
 int PAR_NUIS[NPARS]       = {    0,       1,      1,     1,           0,           0,           0,            0,           0,            0,    4,    4,    4,    4,    4,    4 }; // 0 = not varied, >=1 = nuisance parameters with different priors (1 = Lognormal, 2 = Gaussian, 3 = Gamma, >=4 = Uniform)
 
@@ -306,15 +306,15 @@ int main(int argc, char* argv[])
   //
 
   // input data file
-  INPUTFILES.push_back("Data_and_ResonanceShapes/histo_signal_bkg_Dijet_MassW.root");
+  INPUTFILES.push_back("Data_and_ResonanceShapes/histo_bkg_mjj.root");
 
   // data histogram name
   string datahistname = "hist_allCutsQCD";
 
   // input signal files with resonance shapes
-  string filename = "Data_and_ResonanceShapes/Resonance_Shapes_qq_13TeV.root";
-  if(final_state=="qg") filename = "Data_and_ResonanceShapes/Resonance_Shapes_qg_PU20_13TeV.root";
-  if(final_state=="gg") filename = "Data_and_ResonanceShapes/Resonance_Shapes_gg_13TeV.root";
+  string filename = "Data_and_ResonanceShapes/Resonance_Shapes_qq_13TeV_newJEC.root";
+  if(final_state=="qg") filename = "Data_and_ResonanceShapes/Resonance_Shapes_qg_PU20_13TeV_newJEC.root";
+  if(final_state=="gg") filename = "Data_and_ResonanceShapes/Resonance_Shapes_gg_13TeV_newJEC.root";
 
   // signal histogram name
   string histname = "h_" + final_state + "_" + masspoint;
@@ -346,24 +346,11 @@ int main(int argc, char* argv[])
   string outputfile = OUTPUTFILE.substr(0,OUTPUTFILE.find(".root")) + "_" + masspoint + "_" + final_state + ".root";
   TFile* rootfile=new TFile(outputfile.c_str(), "RECREATE");  rootfile->cd();
 
-//   // xs value
-//   double XSval;
-
-//   // setup an initial fitter to perform a signal+background fit
-//   Fitter* initfit = new Fitter(data, INTEGRAL);
-//   for(int i=0; i<NPARS; i++) initfit->defineParameter(i, PAR_NAMES[i].c_str(), PAR_GUESSES[i], PAR_ERR[i], PAR_MIN[i], PAR_MAX[i], PAR_NUIS[i]);
-// 
-//   // do an initial signal+background fit first
-//   for(int i=0; i<NPARS; i++) if(PAR_TYPE[i]>=2 || PAR_MIN[i]==PAR_MAX[i]) initfit->fixParameter(i);
-//   initfit->doFit();
-//   XSval = initfit->getParameter(0); // get the xs value for later use
-//   initfit->fixParameter(0); // a parameter needs to be fixed before its value can be changed
-//   initfit->setParameter(0, 0.0); // set the xs value to 0 to get the B component of the S+B fit (for calculating pulls and generating pseudo-data)
-//   initfit->setPrintLevel(0);
-//   initfit->calcPull("pull_bkg_init")->Write();
-//   initfit->calcDiff("diff_bkg_init")->Write();
-//   initfit->write("fit_bkg_init");
-//   initfit->setParameter(0, XSval);
+  // setup an initial fitter just to get pseudo-data, not to perform any actual fits
+  //Fitter* initfit = new Fitter(data, INTEGRAL);
+  //initfit->setRandomSeed(3157);
+  //TH1D* pseudodata = initfit->makePseudoDataFromMC("data_0");
+  //pseudodata->SaveAs("pseudodata.root");
 
   // setup the limit values
   double observedLowerBound, observedUpperBound;
@@ -373,56 +360,57 @@ int main(int argc, char* argv[])
   cout << "********************** pe=0 (data) **********************" << endl;
 
   // setup the fitter with the input from the signal+background fit
-  Fitter* fit_data = new Fitter(data, INTEGRAL);
+  Fitter* fit_data = new Fitter(data, INTEGRAL); // replace 'data' with 'pseudodata' if interested in fitting to pseudo-data derived from QCD MC
   fit_data->setPOIIndex(POIINDEX);
   //fit_data->setPrintLevel(0);
   for(int i=0; i<NPARS; i++) fit_data->defineParameter(i, PAR_NAMES[i].c_str(), PAR_GUESSES[i], PAR_ERR[i], PAR_MIN[i], PAR_MAX[i], PAR_NUIS[i]);
 
-//   // perform a signal+background fit possibly followed by a background-only fit with a fixed but non-zero signal
-//   for(int i=0; i<NPARS; i++) if(PAR_TYPE[i]>=2 || PAR_MIN[i]==PAR_MAX[i]) fit_data->fixParameter(i);
-//   if(BonlyFitForSyst) { fit_data->doFit(); if(fit_data->getFitStatus().find("CONVERGED")==string::npos) { fit_data->fixParameter(0); fit_data->setParameter(0, 0.0); } else fit_data->fixParameter(0); }
-//   fit_data->doFit(&COV_MATRIX[0][0], NPARS);
-//   cout << "Data fit status: " << fit_data->getFitStatus() << endl;
-//   fit_data->fixParameter(0); // a parameter needs to be fixed before its value can be changed
-//   fit_data->setParameter(0, 0.0); // set the xs value to 0 to get the B component of the S+B fit (for calculating pulls and generating pseudo-data)
-//   fit_data->setPrintLevel(0);
-//   fit_data->calcPull("pull_bkg_0")->Write();
-//   fit_data->calcDiff("diff_bkg_0")->Write();
-//   fit_data->write("fit_bkg_0");
-// 
-//   // calculate eigenvalues and eigenvectors
-//   for(int i = 0; i<NBKGPARS; ++i) { for(int j = 0; j<NBKGPARS; ++j) { covMatrix(i,j)=COV_MATRIX[i+shift][j+shift]; } }
-//   //covMatrix.Print();
-//   const TMatrixDSymEigen eigen_data(covMatrix);
-//   eigenValues = eigen_data.GetEigenValues();
-//   eigenValues.Sqrt();
-//   //eigenValues.Print();
-//   eigenVectors = eigen_data.GetEigenVectors();
-//   //eigenVectors.Print();
-// 
-//   fit_data->setParLimits(0, 0.0, PAR_MAX[0]); // for the posterior calculation, the signal xs has to be positive
-//   TGraph* post_data = 0;
-//   if(useMCMC==0)
-//   {
-//     post_data=fit_data->calculatePosterior(NSAMPLES);
-//     post_data->Write("post_0");
-//     cout << "Call limit reached: " << (fit_data->callLimitReached() ? "True" : "False") << endl;
-//   }
-//   else
-//   {
-//     post_data=fit_data->calculatePosterior(0);
-//     pair<double, double> statonly_bounds=evaluateInterval(post_data, ALPHA, LEFTSIDETAIL);
-//     fit_data->setParLimits(0, 0.0, xsUpperBoundFactor*(statonly_bounds.second));
-//     post_data=fit_data->calculatePosterior(NSAMPLES, useMCMC);
-//     //fit_data->PrintAllMarginalized("plots.ps");
-//     //fit_data->PrintResults("results.txt");
-//     post_data->Write("post_0");
-//   }
-// 
-//   // evaluate the limit
-//   pair<double, double> bounds_data=evaluateInterval(post_data, ALPHA, LEFTSIDETAIL);
-//   observedLowerBound=bounds_data.first;
-//   observedUpperBound=bounds_data.second;
+  // perform a signal+background fit possibly followed by a background-only fit with a fixed but non-zero signal
+  for(int i=0; i<NPARS; i++) if(PAR_TYPE[i]>=2 || PAR_MIN[i]==PAR_MAX[i]) fit_data->fixParameter(i);
+  if(BonlyFitForSyst) { fit_data->doFit(); if(fit_data->getFitStatus().find("CONVERGED")==string::npos) { fit_data->fixParameter(0); fit_data->setParameter(0, 0.0); } else fit_data->fixParameter(0); }
+  fit_data->fixParameter(0); fit_data->setParameter(0, 0.0); // for MC studies with expected limits, fixing the signal xs to 0 in the fit
+  fit_data->doFit(&COV_MATRIX[0][0], NPARS);
+  cout << "Data fit status: " << fit_data->getFitStatus() << endl;
+  fit_data->fixParameter(0); // a parameter needs to be fixed before its value can be changed
+  fit_data->setParameter(0, 0.0); // set the xs value to 0 to get the B component of the S+B fit (for calculating pulls and generating pseudo-data)
+  fit_data->setPrintLevel(0);
+  fit_data->calcPull("pull_bkg_0")->Write();
+  fit_data->calcDiff("diff_bkg_0")->Write();
+  fit_data->write("fit_bkg_0");
+
+  // calculate eigenvalues and eigenvectors
+  for(int i = 0; i<NBKGPARS; ++i) { for(int j = 0; j<NBKGPARS; ++j) { covMatrix(i,j)=COV_MATRIX[i+shift][j+shift]; } }
+  //covMatrix.Print();
+  const TMatrixDSymEigen eigen_data(covMatrix);
+  eigenValues = eigen_data.GetEigenValues();
+  eigenValues.Sqrt();
+  //eigenValues.Print();
+  eigenVectors = eigen_data.GetEigenVectors();
+  //eigenVectors.Print();
+
+  fit_data->setParLimits(0, 0.0, PAR_MAX[0]); // for the posterior calculation, the signal xs has to be positive
+  TGraph* post_data = 0;
+  if(useMCMC==0)
+  {
+    post_data=fit_data->calculatePosterior(NSAMPLES);
+    post_data->Write("post_0");
+    cout << "Call limit reached: " << (fit_data->callLimitReached() ? "True" : "False") << endl;
+  }
+  else
+  {
+    post_data=fit_data->calculatePosterior(0);
+    pair<double, double> statonly_bounds=evaluateInterval(post_data, ALPHA, LEFTSIDETAIL);
+    fit_data->setParLimits(0, 0.0, xsUpperBoundFactor*(statonly_bounds.second));
+    post_data=fit_data->calculatePosterior(NSAMPLES, useMCMC);
+    //fit_data->PrintAllMarginalized("plots.ps");
+    //fit_data->PrintResults("results.txt");
+    post_data->Write("post_0");
+  }
+
+  // evaluate the limit
+  pair<double, double> bounds_data=evaluateInterval(post_data, ALPHA, LEFTSIDETAIL);
+  observedLowerBound=bounds_data.first;
+  observedUpperBound=bounds_data.second;
 
   // reset the covariance matrix
   for(int i = 0; i<NPARS; ++i) { for(int j = 0; j<NPARS; ++j) COV_MATRIX[i][j]=0.; }
@@ -437,8 +425,7 @@ int main(int argc, char* argv[])
     fit_data->fixParameter(0); // a parameter needs to be fixed before its value can be changed
     // setup the fitter with the input from the signal+background fit
     fit_data->setParameter(0, 0.0); // set the xs value to 0 to get the B component of the S+B fit (for calculating pulls and generating pseudo-data)
-    TH1D* hist = fit_data->makePseudoData((string("data")+pestr.str()).c_str()); // makes pseudo-data from the background fit, will be used once we have real data
-    //TH1D* hist = fit_data->makePseudoDataFromMC((string("data")+pestr.str()).c_str());
+    TH1D* hist = fit_data->makePseudoData((string("data")+pestr.str()).c_str()); // makes pseudo-data from the background fit
     fit_data->setParameter(0, PAR_GUESSES[0]);
 
     Fitter* fit = new Fitter(hist, INTEGRAL);
