@@ -77,7 +77,7 @@ steps = 58
       #xs_exp_limits_2sigma.append(float(line.split()[4]))
       #xs_exp_limits_2sigma_up.append(float(line.split()[6]))
 
-#-------------------------------------------------------
+##------------------------------------------------------
 
 ### for reading the limit code log files
 #for i in range(0,steps+1):
@@ -103,12 +103,13 @@ steps = 58
       #xs_exp_limits_2sigma.append(float(line.split()[4]))
       #xs_exp_limits_2sigma_up.append(float(line.split()[6]))
 
+##------------------------------------------------------
+
 #for i in range(0,len(masses)):
   #masses_exp.append( masses[len(masses)-i-1] )
   #xs_exp_limits_1sigma.append( xs_exp_limits_1sigma_up[len(masses)-i-1] )
   #xs_exp_limits_2sigma.append( xs_exp_limits_2sigma_up[len(masses)-i-1] )
 
-#-------------------------------------------------------
 
 #print "masses:"
 #print masses
