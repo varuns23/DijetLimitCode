@@ -76,7 +76,7 @@ const int NPARS=16;
 const int NBKGPARS=(use6ParFit ? 6 : 4);
 const int POIINDEX=0; // which parameter is "of interest"
 string PAR_NAMES[NPARS]   = { "xs",  "lumi",  "jes", "jer",        "p0",        "p1",        "p2",         "p3",        "p4",         "p5", "n0", "n1", "n2", "n3", "n4", "n5" };
-double PAR_GUESSES[NPARS] = { 1E-3,   1000.,    1.0,   1.0, 8.50116e-04, 5.46511e+00, 6.65688e+00,  2.87902e-01,          0.,           0.,    0,    0,    0,    0,    0,    0 };
+double PAR_GUESSES[NPARS] = { 1E-3,   1000.,    1.0,   1.0, 6.99137e-03, 7.63335e+00, 5.46640e+00,  2.31555e-02,          0.,           0.,    0,    0,    0,    0,    0,    0 };
 double PAR_MIN[NPARS]     = {    0,     0.0,    0.0,   0.0,        -1E4,       -9999,       -9999,        -9999,       -9999,        -9999, -100, -100, -100, -100, -100, -100 };
 double PAR_MAX[NPARS]     = {  1E3,     5E3,    2.0,   2.0,         1E4,        9999,        9999,         9999,        9999,         9999,  100,  100,  100,  100,  100,  100 };
 double PAR_ERR[NPARS]     = { 1E-3,    500.,   0.01,  0.10,       1e-04,       1e-01,       1e-01,        1e-03,       1e-02,        1e-03,    1,    1,    1,    1,    1,    1 };
@@ -107,7 +107,7 @@ TMatrixD eigenVectors = TMatrixD(NBKGPARS,NBKGPARS);
 const bool posS = 0;
 
 // use B-only fit with fixed but non-zero signal when calculating the covariance matrix used for background systematics
-const bool BonlyFitForSyst = 0; // disabled to speed things up since not including systematics in the limits
+const bool BonlyFitForSyst = 1;
 
 // shift in the counter used to extract the covariance matrix
 int shift = 1;
@@ -306,10 +306,10 @@ int main(int argc, char* argv[])
   //
 
   // input data file
-  INPUTFILES.push_back("Data_and_ResonanceShapes/histo_bkg_mjj.root");
+  INPUTFILES.push_back("Data_and_ResonanceShapes/histo_bkg_mjj_pseudo.root");
 
   // data histogram name
-  string datahistname = "hist_allCutsQCD";
+  string datahistname = "hist_mass_1GeV";
 
   // input signal files with resonance shapes
   string filename = "Data_and_ResonanceShapes/Resonance_Shapes_qq_13TeV_newJEC.root";
@@ -368,7 +368,7 @@ int main(int argc, char* argv[])
   // perform a signal+background fit possibly followed by a background-only fit with a fixed but non-zero signal
   for(int i=0; i<NPARS; i++) if(PAR_TYPE[i]>=2 || PAR_MIN[i]==PAR_MAX[i]) fit_data->fixParameter(i);
   if(BonlyFitForSyst) { fit_data->doFit(); if(fit_data->getFitStatus().find("CONVERGED")==string::npos) { fit_data->fixParameter(0); fit_data->setParameter(0, 0.0); } else fit_data->fixParameter(0); }
-  fit_data->fixParameter(0); fit_data->setParameter(0, 0.0); // for MC studies with expected limits, fixing the signal xs to 0 in the fit
+  //fit_data->fixParameter(0); fit_data->setParameter(0, 0.0); // for MC studies with expected limits, fixing the signal xs to 0 in the fit
   fit_data->doFit(&COV_MATRIX[0][0], NPARS);
   cout << "Data fit status: " << fit_data->getFitStatus() << endl;
   fit_data->fixParameter(0); // a parameter needs to be fixed before its value can be changed
