@@ -371,12 +371,20 @@ int main(int argc, char* argv[])
   //fit_data->fixParameter(0); fit_data->setParameter(0, 0.0); // for MC studies with expected limits, fixing the signal xs to 0 in the fit
   fit_data->doFit(&COV_MATRIX[0][0], NPARS);
   cout << "Data fit status: " << fit_data->getFitStatus() << endl;
+  double nll_SpB_data = fit_data->evalNLL();
+  //cout << "NLL(S+B) = " << nll_SpB_data << endl;
   fit_data->fixParameter(0); // a parameter needs to be fixed before its value can be changed
   fit_data->setParameter(0, 0.0); // set the xs value to 0 to get the B component of the S+B fit (for calculating pulls and generating pseudo-data)
+  double nll_B_data = fit_data->evalNLL();
+  //cout << "NLL(B) = " << nll_B_data << endl;
   fit_data->setPrintLevel(0);
   fit_data->calcPull("pull_bkg_0")->Write();
   fit_data->calcDiff("diff_bkg_0")->Write();
   fit_data->write("fit_bkg_0");
+
+  // Significance estimator: Sig = sqrt(-2ln(L(B)/L(S+B)))
+  double nll_Diff_data = nll_B_data-nll_SpB_data;
+  cout << "Significance(data) = " << ( nll_Diff_data>0 ? sqrt(2*nll_Diff_data) : 0.) << endl;
 
   // calculate eigenvalues and eigenvectors
   for(int i = 0; i<NBKGPARS; ++i) { for(int j = 0; j<NBKGPARS; ++j) { covMatrix(i,j)=COV_MATRIX[i+shift][j+shift]; } }
@@ -438,11 +446,19 @@ int main(int argc, char* argv[])
     if(BonlyFitForSyst) { fit->doFit(); if(fit->getFitStatus().find("CONVERGED")==string::npos) { fit->fixParameter(0); fit->setParameter(0, 0.0); } else fit->fixParameter(0); }
     fit->doFit(&COV_MATRIX[0][0], NPARS);
     if(fit->getFitStatus().find("CONVERGED")==string::npos) continue; // skip the PE if the fit did not converge
+    double nll_SpB = fit->evalNLL();
+    //cout << "NLL(S+B) = " << nll_SpB << endl;
     fit->fixParameter(0); // a parameter needs to be fixed before its value can be changed
     fit->setParameter(0, 0.0); // set the xs value to 0 to get the B component of the S+B fit (for calculating pulls and generating pseudo-data)
+    double nll_B = fit->evalNLL();
+    //cout << "NLL(B) = " << nll_B << endl;
     fit->calcPull((string("pull_bkg")+pestr.str()).c_str())->Write();
     fit->calcDiff((string("diff_bkg")+pestr.str()).c_str())->Write();
     fit->write((string("fit_bkg")+pestr.str()).c_str());
+
+    // Significance estimator: Sig = sqrt(-2ln(L(B)/L(S+B)))
+    double nll_Diff = nll_B-nll_SpB;
+    cout << "Significance(" << pe << ") = " << ( nll_Diff>0 ? sqrt(2*nll_Diff) : 0.) << endl;
 
     // calculate eigenvalues and eigenvectors
     for(int i = 0; i<NBKGPARS; ++i) { for(int j = 0; j<NBKGPARS; ++j) { covMatrix(i,j)=COV_MATRIX[i+shift][j+shift]; } }
