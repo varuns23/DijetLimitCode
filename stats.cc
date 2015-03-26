@@ -43,6 +43,9 @@ const int NSAMPLES=0; // 10000 (larger value is better but it also slows down th
 // number of pseudoexperiments (when greater than 0, expected limit with +/- 1 and 2 sigma bands is calculated)
 const int NPES=200; // 200 (the more pseudo-experiments, the better. However, 200 is a reasonable choice)
 
+// calculate significance estimator Sig = sgn(S)*sqrt{-2ln[L(B)/L(S+B)]}
+const int calcSig = 0; // needs to be set to 0 for limit calculation
+
 // use 6-parameter background fit function
 const bool use6ParFit = 0;
 
@@ -373,8 +376,10 @@ int main(int argc, char* argv[])
   cout << "Data fit status: " << fit_data->getFitStatus() << endl;
   double nll_SpB_data = fit_data->evalNLL();
   //cout << "NLL(S+B) = " << nll_SpB_data << endl;
+  double sign_data = fit_data->getParameter(0)/fabs(fit_data->getParameter(0));
   fit_data->fixParameter(0); // a parameter needs to be fixed before its value can be changed
   fit_data->setParameter(0, 0.0); // set the xs value to 0 to get the B component of the S+B fit (for calculating pulls and generating pseudo-data)
+  if(calcSig) fit_data->doFit();
   double nll_B_data = fit_data->evalNLL();
   //cout << "NLL(B) = " << nll_B_data << endl;
   fit_data->setPrintLevel(0);
@@ -382,9 +387,9 @@ int main(int argc, char* argv[])
   fit_data->calcDiff("diff_bkg_0")->Write();
   fit_data->write("fit_bkg_0");
 
-  // Significance estimator: Sig = sqrt(-2ln(L(B)/L(S+B)))
+  // Significance estimator: Sig = sgn(S)*sqrt{-2ln[L(B)/L(S+B)]}
   double nll_Diff_data = nll_B_data-nll_SpB_data;
-  cout << "Significance(data) = " << ( nll_Diff_data>0 ? sqrt(2*nll_Diff_data) : 0.) << endl;
+  if(calcSig) cout << "Significance(data) = " << ( nll_Diff_data>0 ? sign_data*sqrt(2*nll_Diff_data) : 0. ) << endl;
 
   // calculate eigenvalues and eigenvectors
   for(int i = 0; i<NBKGPARS; ++i) { for(int j = 0; j<NBKGPARS; ++j) { covMatrix(i,j)=COV_MATRIX[i+shift][j+shift]; } }
@@ -448,17 +453,20 @@ int main(int argc, char* argv[])
     if(fit->getFitStatus().find("CONVERGED")==string::npos) continue; // skip the PE if the fit did not converge
     double nll_SpB = fit->evalNLL();
     //cout << "NLL(S+B) = " << nll_SpB << endl;
+    double sign = fit->getParameter(0)/fabs(fit->getParameter(0));
     fit->fixParameter(0); // a parameter needs to be fixed before its value can be changed
     fit->setParameter(0, 0.0); // set the xs value to 0 to get the B component of the S+B fit (for calculating pulls and generating pseudo-data)
+    if(calcSig) fit->doFit();
     double nll_B = fit->evalNLL();
     //cout << "NLL(B) = " << nll_B << endl;
     fit->calcPull((string("pull_bkg")+pestr.str()).c_str())->Write();
     fit->calcDiff((string("diff_bkg")+pestr.str()).c_str())->Write();
     fit->write((string("fit_bkg")+pestr.str()).c_str());
 
-    // Significance estimator: Sig = sqrt(-2ln(L(B)/L(S+B)))
+    // Significance estimator: Sig = sgn(S)*sqrt{-2ln[L(B)/L(S+B)]}
     double nll_Diff = nll_B-nll_SpB;
-    cout << "Significance(" << pe << ") = " << ( nll_Diff>0 ? sqrt(2*nll_Diff) : 0.) << endl;
+    //if(nll_Diff<0.) cout << "-----> Negative NLL difference: " << nll_Diff << endl;
+    if(calcSig) cout << "Significance(" << pe << ") = " << ( nll_Diff>0 ? sign*sqrt(2*nll_Diff) : 0. ) << endl;
 
     // calculate eigenvalues and eigenvectors
     for(int i = 0; i<NBKGPARS; ++i) { for(int j = 0; j<NBKGPARS; ++j) { covMatrix(i,j)=COV_MATRIX[i+shift][j+shift]; } }
