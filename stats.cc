@@ -414,7 +414,7 @@ int main(int argc, char* argv[])
     post_data=fit_data->calculatePosterior(0);
     pair<double, double> statonly_bounds=evaluateInterval(post_data, ALPHA, LEFTSIDETAIL);
     fit_data->setParLimits(0, 0.0, xsUpperBoundFactor*(statonly_bounds.second));
-    post_data=fit_data->calculatePosterior(NSAMPLES, useMCMC);
+    post_data=fit_data->calculatePosterior((useMCMC ? 1 : NSAMPLES), useMCMC);
     //fit_data->PrintAllMarginalized("plots.ps");
     //fit_data->PrintResults("results.txt");
     post_data->Write("post_0");
@@ -491,7 +491,7 @@ int main(int argc, char* argv[])
       post=fit->calculatePosterior(0);
       pair<double, double> statonly_bounds=evaluateInterval(post, ALPHA, LEFTSIDETAIL);
       fit->setParLimits(0, 0.0, xsUpperBoundFactor*(statonly_bounds.second));
-      post=fit->calculatePosterior(NSAMPLES, useMCMC);
+      post=fit->calculatePosterior((useMCMC ? 1 : NSAMPLES), useMCMC);
       post->Write((string("post")+pestr.str()).c_str());
     }
 
