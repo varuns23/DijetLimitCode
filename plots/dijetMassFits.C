@@ -17,16 +17,17 @@
 using namespace std;
 
 const double alpha = 1 - 0.6827;
+const double sqrtS = 13000.;
 
 Double_t fitQCD4Par(Double_t *m, Double_t *p)
 {
-    double x=m[0]/13000.;
+    double x=m[0]/sqrtS;
     return p[0]*pow(1.-x,p[1])/pow(x,p[2]+p[3]*log(x));
 }
 
 Double_t fitQCD6Par(Double_t *m, Double_t *p)
 {
-    double x=m[0]/13000.;
+    double x=m[0]/sqrtS;
     return p[0]*pow(1.-x,p[1])/pow(x,p[2]+p[3]*log(x)+p[4]*pow(log(x),2)+p[5]*pow(log(x),3));
 }
 
@@ -40,6 +41,8 @@ void performFit(const string& fInputFile, const string& fPlot,  const Int_t fNbi
   gStyle->SetOptTitle(kFALSE);
   gStyle->SetPadLeftMargin(0.13);
   gStyle->SetPadRightMargin(0.07);
+  gStyle->SetPadTopMargin(0.05);
+  gStyle->SetPadBottomMargin(0.15);
 
   TRandom3 rand(437);
   //TRandom3 rand(0);
@@ -58,13 +61,13 @@ void performFit(const string& fInputFile, const string& fPlot,  const Int_t fNbi
 
   for(Int_t i=1; i<=h1_plot_r->GetNbinsX(); ++i)
   {
-    //Double_t n = h1_plot_r->GetBinContent(i);
-    Double_t n = rand.Poisson(h1_plot_r->GetBinContent(i));
+    Double_t n = h1_plot_r->GetBinContent(i);
+    //Double_t n = rand.Poisson(h1_plot_r->GetBinContent(i));
     //Double_t err = h1_plot_r->GetBinError(i);
-    //Double_t l = 0.5*TMath::ChisquareQuantile(alpha/2,2*n);
-    //Double_t h = 0.5*TMath::ChisquareQuantile(1-alpha/2,2*(n+1));
-    //Double_t err = (h-l)/2;
-    Double_t err = sqrt(n);
+    Double_t l = 0.5*TMath::ChisquareQuantile(alpha/2,2*n);
+    Double_t h = 0.5*TMath::ChisquareQuantile(1-alpha/2,2*(n+1));
+    Double_t err = (h-l)/2;
+    //Double_t err = sqrt(n);
     Double_t dm  = h1_plot_r->GetBinWidth(i);
 
     h1_plot_diff->SetBinContent(i, n/dm);
@@ -78,7 +81,7 @@ void performFit(const string& fInputFile, const string& fPlot,  const Int_t fNbi
   h1_plot_diff->GetYaxis()->SetRangeUser(1e-3,1e4);
   h1_plot_diff->SetMarkerStyle(20);
   h1_plot_diff->SetMarkerSize(0.8);
-  h1_plot_diff->SetTitleOffset(1.4,"Y");
+  h1_plot_diff->SetTitleOffset(1.,"Y");
 
   // Fit to data
   TF1 *fit = new TF1("fit",fitQCD4Par,fFitXmin,fFitXmax,4);           // 4 Param. Fit
@@ -133,10 +136,10 @@ void performFit(const string& fInputFile, const string& fPlot,  const Int_t fNbi
   //l1.SetTextFont(42);
   l1.SetNDC();
   l1.SetTextSize(0.03);
-  l1.DrawLatex(0.17,0.33, "CMS Preliminary");
-  l1.DrawLatex(0.17,0.27, "#intLdt = 1 fb^{-1}");
-  l1.DrawLatex(0.17,0.23, "#sqrt{s} = 13 TeV");
-  l1.DrawLatex(0.17,0.15, fLabel.c_str());
+  l1.DrawLatex(0.17,0.43, "CMS Preliminary");
+  l1.DrawLatex(0.17,0.37, "#intLdt = 1 fb^{-1}");
+  l1.DrawLatex(0.17,0.33, "#sqrt{s} = 13 TeV");
+  l1.DrawLatex(0.17,0.25, fLabel.c_str());
   
   c->SetLogy();
   c->SaveAs(fOutputFile.c_str());
@@ -157,6 +160,8 @@ void drawFit(const string& fInputFile, const string& fPlot, const Int_t fNbins, 
   gStyle->SetOptTitle(kFALSE);
   gStyle->SetPadLeftMargin(0.13);
   gStyle->SetPadRightMargin(0.07);
+  gStyle->SetPadTopMargin(0.05);
+  gStyle->SetPadBottomMargin(0.15);
 
   TFile *file = new TFile(fInputFile.c_str());
 
@@ -189,7 +194,7 @@ void drawFit(const string& fInputFile, const string& fPlot, const Int_t fNbins, 
   h1_plot_diff->GetYaxis()->SetRangeUser(1e-3,1e4);
   h1_plot_diff->SetMarkerStyle(20);
   h1_plot_diff->SetMarkerSize(0.8);
-  h1_plot_diff->SetTitleOffset(1.4,"Y");
+  h1_plot_diff->SetTitleOffset(1.,"Y");
 
   // Fit function
   TF1 *fit = new TF1("fit",fitQCD4Par,fFitXmin,fFitXmax,4);           // 4 Param. Fit
@@ -226,10 +231,10 @@ void drawFit(const string& fInputFile, const string& fPlot, const Int_t fNbins, 
 //   l1.SetTextFont(42);
   l1.SetNDC();
   l1.SetTextSize(0.03);
-  l1.DrawLatex(0.17,0.33, "CMS Preliminary");
-  l1.DrawLatex(0.17,0.27, "#intLdt = 1 fb^{-1}");
-  l1.DrawLatex(0.17,0.23, "#sqrt{s} = 13 TeV");
-  l1.DrawLatex(0.17,0.15, fLabel.c_str());
+  l1.DrawLatex(0.17,0.43, "CMS Preliminary");
+  l1.DrawLatex(0.17,0.37, "#intLdt = 1 fb^{-1}");
+  l1.DrawLatex(0.17,0.33, "#sqrt{s} = 13 TeV");
+  l1.DrawLatex(0.17,0.25, fLabel.c_str());
 
   c->SetLogy();
   c->SaveAs(fOutputFile.c_str());
@@ -242,23 +247,20 @@ void drawFit(const string& fInputFile, const string& fPlot, const Int_t fNbins, 
 void makePlots()
 {
 
-  Double_t xbins[] = {  1118, 1181, 1246, 1313, 1383, 1455, 1530, 1607, 1687,
-                        1770, 1856, 1945, 2037, 2132, 2231, 2332, 2438, 2546,
-                        2659, 2775, 2895, 3019, 3147, 3279, 3416, 3558, 3704,
-                        3854, 4010, 4171, 4337, 4509, 4686, 4869, 5058, 5253,
-                        5455, 5663, 5877, 6099, 6328, 6564 };
+  Double_t xbins[] = { 1118, 1181, 1246, 1313, 1383, 1455, 1530, 1607, 1687,
+                       1770, 1856, 1945, 2037, 2132, 2231, 2332, 2438, 2546,
+                       2659, 2775, 2895, 3019, 3147, 3279, 3416, 3558, 3704,
+                       3854, 4010, 4171, 4337, 4509, 4686, 4869, 5058, 5253,
+                       5455, 5663, 5877, 6099, 6328, 6564, 6808, 7060, 7320, 
+                       7589, 7866, 8152, 8447, 8752, 9067 };
 
-// ##################
-// ## Dijet scouting
-// ##################
+  performFit("Data_and_ResonanceShapes/histo_bkg_mjj_pseudo.root",
+             "hist_mass_1GeV", 50, xbins, 1118, 6564, "M_{jj}>1118 GeV",
+             "DijetMass_4ParFit_Run2_13TeV.pdf", 0, 6.99137e-03, 7.63335e+00, 5.46640e+00,  2.31555e-02);
 
-  performFit("../Data_and_ResonanceShapes/histo_signal_bkg_Dijet_MassW.root",
-             "hist_allCutsQCD", 41, xbins, 1118, 6564, "M_{jj}>1118 GeV",
-             "DijetMass_4ParFit_Run2_13TeV.eps", 0, 5.64203e-04, 4.73078e+00, 7.14070e+00, 2.76385e-01);
-
-  drawFit("../Data_and_ResonanceShapes/histo_signal_bkg_Dijet_MassW.root",
-          "hist_allCutsQCD", 41, xbins, 1118, 6564, "M_{jj}>1118 GeV",
-          "DijetMass_Draw4ParFit_Run2_13TeV.eps", 0, 5.46302e-04, 4.82153e+00, 7.19274e+00,  2.91177e-01);
+  drawFit("Data_and_ResonanceShapes/histo_bkg_mjj_pseudo.root",
+          "hist_mass_1GeV", 50, xbins, 1118, 6564, "M_{jj}>1118 GeV",
+          "DijetMass_Draw4ParFit_Run2_13TeV.pdf", 0, 6.99137e-03, 7.63335e+00, 5.46640e+00,  2.31555e-02);
 
 }
 
