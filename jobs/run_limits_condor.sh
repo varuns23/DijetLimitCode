@@ -1,7 +1,22 @@
 #!/bin/bash
 
-CONDOR_PROCESS=$1
+MASS=$1
 FINAL_STATE=$2
+
+LOG=`echo "stats_${MASS}_${FINAL_STATE}.log"`
+
+NPES=""
+if [ ! -z "$3" ]
+  then
+    NPES=$3
+fi
+
+CONDOR_PROCESS=""
+if [ ! -z "$4" ]
+  then
+    CONDOR_PROCESS=$4
+    LOG=`echo "stats_${MASS}_${FINAL_STATE}_${CONDOR_PROCESS}.log"`
+fi
 
 
 START_TIME=`/bin/date`
@@ -20,11 +35,8 @@ mv *.root Data_and_ResonanceShapes/
 
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${_CONDOR_SCRATCH_DIR}
 
-let "MASS = $CONDOR_PROCESS*100 + 1200"
-LOG=`echo "stats_${MASS}_${FINAL_STATE}.log"`
-
-echo "Running: stats $MASS $FINAL_STATE > $LOG 2>&1"
-./stats $MASS $FINAL_STATE > $LOG 2>&1
+echo "Running: stats $MASS $FINAL_STATE $NPES $CONDOR_PROCESS > $LOG 2>&1"
+./stats $MASS $FINAL_STATE $NPES $CONDOR_PROCESS > $LOG 2>&1
 exitcode=$?
 
 echo ""

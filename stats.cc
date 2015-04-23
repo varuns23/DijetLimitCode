@@ -41,7 +41,7 @@ const int NSAMPLES=0; // 10000 (larger value is better but it also slows down th
 // IMPORTANT: With useMCMC = 0, the systematic uncertanties are included in the limit calculation only when NSAMPLES is greater than 0. Use the PAR_NUIS[] array below to control what uncertainties are included
 
 // number of pseudoexperiments (when greater than 0, expected limit with +/- 1 and 2 sigma bands is calculated)
-const int NPES=200; // 200 (the more pseudo-experiments, the better. However, 200 is a reasonable choice)
+int NPES=0; // 200 (the more pseudo-experiments, the better. However, 200 is a reasonable choice)
 
 // calculate significance estimator Sig = sgn(S)*sqrt{-2ln[L(B)/L(S+B)]}
 const int calcSig = 0; // needs to be set to 0 for limit calculation
@@ -301,7 +301,9 @@ int main(int argc, char* argv[])
 
   string final_state = "qq";
   if(argc>2) final_state = argv[2];
-
+  if(argc>3) NPES = atoi(argv[3]);
+  int jobID = 0;
+  if(argc>4) jobID = atoi(argv[4]);
 
   //##################################################################################################################################
   // User Section 2
@@ -347,7 +349,7 @@ int main(int argc, char* argv[])
   TH1D* data=getData(INPUTFILES, datahistname.c_str(), NBINS, BOUNDARIES);
 
   // create the output file
-  string outputfile = OUTPUTFILE.substr(0,OUTPUTFILE.find(".root")) + "_" + masspoint + "_" + final_state + ".root";
+  string outputfile = OUTPUTFILE.substr(0,OUTPUTFILE.find(".root")) + "_" + masspoint + "_" + final_state + (argc>4 ? "_" : "") + (argc>4 ? to_string(jobID) : "") + ".root";
   TFile* rootfile=new TFile(outputfile.c_str(), "RECREATE");  rootfile->cd();
 
   // setup an initial fitter just to get pseudo-data, not to perform any actual fits
@@ -365,6 +367,7 @@ int main(int argc, char* argv[])
 
   // setup the fitter with the input from the signal+background fit
   Fitter* fit_data = new Fitter(data, INTEGRAL); // replace 'data' with 'pseudodata' if interested in fitting to pseudo-data derived from QCD MC
+  fit_data->setRandomSeed(31415+jobID*100);
   fit_data->setPOIIndex(POIINDEX);
   //fit_data->setPrintLevel(0);
   for(int i=0; i<NPARS; i++) fit_data->defineParameter(i, PAR_NAMES[i].c_str(), PAR_GUESSES[i], PAR_ERR[i], PAR_MIN[i], PAR_MAX[i], PAR_NUIS[i]);
@@ -384,9 +387,9 @@ int main(int argc, char* argv[])
   double nll_B_data = fit_data->evalNLL();
   //cout << "NLL(B) = " << nll_B_data << endl;
   fit_data->setPrintLevel(0);
-  fit_data->calcPull("pull_bkg_0")->Write();
-  fit_data->calcDiff("diff_bkg_0")->Write();
-  fit_data->write("fit_bkg_0");
+  if(jobID==0) fit_data->calcPull("pull_bkg_0")->Write();
+  if(jobID==0) fit_data->calcDiff("diff_bkg_0")->Write();
+  if(jobID==0) fit_data->write("fit_bkg_0");
 
   // Significance estimator: Sig = sgn(S)*sqrt{-2ln[L(B)/L(S+B)]}
   double nll_Diff_data = nll_B_data-nll_SpB_data;
@@ -407,7 +410,7 @@ int main(int argc, char* argv[])
   if(useMCMC==0)
   {
     post_data=fit_data->calculatePosterior(NSAMPLES);
-    post_data->Write("post_0");
+    if(jobID==0) post_data->Write("post_0");
     cout << "Call limit reached: " << (fit_data->callLimitReached() ? "True" : "False") << endl;
   }
   else
@@ -418,7 +421,7 @@ int main(int argc, char* argv[])
     post_data=fit_data->calculatePosterior((useMCMC ? 1 : NSAMPLES), useMCMC);
     //fit_data->PrintAllMarginalized("plots.ps");
     //fit_data->PrintResults("results.txt");
-    post_data->Write("post_0");
+    if(jobID==0) post_data->Write("post_0");
   }
 
   // evaluate the limit
@@ -430,7 +433,7 @@ int main(int argc, char* argv[])
   for(int i = 0; i<NPARS; ++i) { for(int j = 0; j<NPARS; ++j) COV_MATRIX[i][j]=0.; }
 
   // perform the PEs
-  for(int pe=1; pe<=NPES; ++pe) {
+  for(int pe=(jobID*NPES+1); pe<=(jobID*NPES+NPES); ++pe) {
 
     cout << "********************** pe=" << pe << " **********************" << endl;
     ostringstream pestr;
@@ -516,7 +519,7 @@ int main(int argc, char* argv[])
 
   cout << "**********************************************************************" << endl;
   for(unsigned int i=0; i<expectedLowerBounds.size(); i++)
-    cout << "expected bound(" << (i+1) << ") = [ " << expectedLowerBounds[i] << " , " << expectedUpperBounds[i] << " ]" << endl;
+    cout << "expected bound(" << (jobID*NPES+i+1) << ") = [ " << expectedLowerBounds[i] << " , " << expectedUpperBounds[i] << " ]" << endl;
 
   cout << "\nobserved bound = [ " << observedLowerBound << " , " << observedUpperBound << " ]" << endl;
 
