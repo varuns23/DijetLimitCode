@@ -7,11 +7,11 @@ Notification = never
 Executable = jobs/run_limits_condor.sh
 Should_Transfer_Files = YES
 WhenToTransferOutput = ON_EXIT
-Transfer_Input_Files = stats, Data_and_ResonanceShapes/histo_bkg_mjj_pseudo.root, Data_and_ResonanceShapes/Resonance_Shapes_qg_PU20_13TeV_newJEC.root, $ENV(HOME)/lib/libBAT.so.5, $ENV(HOME)/lib/libBATmodels.so.3, $ENV(HOME)/lib/libBATmtf.so.0
-Output = condor_DUMMY_MASS_DUMMY_RES_$(Cluster)_$(Process).stdout
-Error = condor_DUMMY_MASS_DUMMY_RES_$(Cluster)_$(Process).stderr
-Log = condor_DUMMY_MASS_DUMMY_RES_$(Cluster)_$(Process).log
-Arguments = DUMMY_MASS DUMMY_RES DUMMY_NPES DUMMY_JOB
+Transfer_Input_Files = stats, Data_and_ResonanceShapes/histo_bkg_mjj_pseudo.root, Data_and_ResonanceShapes/Resonance_Shapes_DUMMY_FS_13TeV_newJEC.root, $ENV(HOME)/lib/libBAT.so.5, $ENV(HOME)/lib/libBATmodels.so.3, $ENV(HOME)/lib/libBATmtf.so.0
+Output = condor_DUMMY_MASS_DUMMY_FS_$(Cluster)_$(Process).stdout
+Error = condor_DUMMY_MASS_DUMMY_FS_$(Cluster)_$(Process).stderr
+Log = condor_DUMMY_MASS_DUMMY_FS_$(Cluster)_$(Process).log
+Arguments = DUMMY_MASS DUMMY_FS DUMMY_NPES DUMMY_JOB
 #+LENGTH="SHORT"
 Queue DUMMY_NJOBS
 """
@@ -32,7 +32,7 @@ def main():
         jdl_file = open(jdl_filename,'w')
         jdl_content = jdl_template
         jdl_content = re.sub('DUMMY_MASS',str(mass),jdl_content)
-        jdl_content = re.sub('DUMMY_RES',res_type,jdl_content)
+        jdl_content = re.sub('DUMMY_FS',res_type,jdl_content)
         jdl_content = re.sub('DUMMY_NPES',(str(npes) if npes>0 else ''),jdl_content)
         jdl_content = re.sub('DUMMY_JOB',('$(Process)' if njobs>1 else ''),jdl_content)
         jdl_content = re.sub('DUMMY_NJOBS',str(njobs),jdl_content)

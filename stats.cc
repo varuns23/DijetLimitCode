@@ -319,7 +319,7 @@ int main(int argc, char* argv[])
 
   // input signal files with resonance shapes
   string filename = "Data_and_ResonanceShapes/Resonance_Shapes_qq_13TeV_newJEC.root";
-  if(final_state=="qg") filename = "Data_and_ResonanceShapes/Resonance_Shapes_qg_PU20_13TeV_newJEC.root";
+  if(final_state=="qg") filename = "Data_and_ResonanceShapes/Resonance_Shapes_qg_13TeV_newJEC.root";
   if(final_state=="gg") filename = "Data_and_ResonanceShapes/Resonance_Shapes_gg_13TeV_newJEC.root";
 
   // signal histogram name
